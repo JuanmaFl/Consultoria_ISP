@@ -1,7 +1,7 @@
 # Consultoria_ISP
-Trabajo consultoria materia P2
 
-# Diseño de la Arquitectura
+
+## Diseño de la Arquitectura
 ## Sistema de Análisis de Cobertura ISP
 
 ---
@@ -16,13 +16,7 @@ Trabajo consultoria materia P2
 - Visualización de cobertura en mapa interactivo
 - Dashboard con estadísticas generales
 - Generación de reportes de factibilidad
-
-### Fuera del Alcance del MVP
 - Análisis predictivo o machine learning
-- Integración con sistemas externos (CRMs, ERPs)
-- Aplicación móvil nativa
-- Sistema de facturación o suscripciones
-- Reportería avanzada personalizada por cliente
 
 ---
 
@@ -32,12 +26,12 @@ Trabajo consultoria materia P2
 
 | Métrica | Estimación |
 |--------|------------|
-| Usuarios concurrentes | 10 – 15 |
+| Usuarios concurrentes | 10 – 20 |
 | Peticiones por segundo (pico) | ~10 RPS |
-| Registros en base de datos | ~10,000 puntos geográficos |
-| Archivos KMZ activos | ~26 |
+| Registros en base de datos | ~15,000 puntos geográficos |
+| Archivos KMZ activos | ~26 (pueden llegar hasta 100) |
 | Proveedores ISP | 4 |
-| Consultas masivas | Hasta 500 registros por archivo |
+| Consultas masivas | Hasta 500 registros por archivo (pueden variar en su geometria puntos, rutas o areas) |
 
 ### Requisitos No Funcionales
 
