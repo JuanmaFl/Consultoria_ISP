@@ -1,8 +1,7 @@
 # Consultoria_ISP
 
 
-## Diseño de la Arquitectura
-## Sistema de Análisis de Cobertura ISP
+## Diseño de la Arquitectura: Sistema de Análisis de Cobertura ISP
 
 ---
 
