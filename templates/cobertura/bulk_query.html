@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Masiva de Cobertura - Sistema ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        .btn-info {
+            background: #667eea15;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-info:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            margin-bottom: 25px;
+        }
+
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: #764ba2;
+            background: #667eea10;
+            transform: scale(1.02);
+        }
+
+        .drop-zone i {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .drop-zone h5 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone p {
+            color: #7f8c8d;
+        }
+
+        /* File Info */
+        .file-info {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .file-info i {
+            color: #4caf50;
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        .file-info span {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        /* Processing Area */
+        .processing-area {
+            display: none;
+            background: #e3f2fd;
+            border: 2px solid #2196F3;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 25px;
+        }
+
+        .processing-area h5 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .progress-custom {
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #bbdefb;
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Result Area */
+        .result-area {
+            display: none;
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 25px;
+        }
+
+        .result-area h5 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .result-area i {
+            color: #4caf50;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Job Cards */
+        .job-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .job-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .job-status {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .job-status.completed {
+            background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
+            color: white;
+        }
+
+        .job-status.processing {
+            background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
+            color: white;
+        }
+
+        .job-status.pending {
+            background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+            color: white;
+        }
+
+        .job-status.failed {
+            background: linear-gradient(135deg, #f44336 0%, #e57373 100%);
+            color: white;
+        }
+
+        /* Modal */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            padding: 25px;
+        }
+
+        .modal-title {
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .example-csv {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .alert-custom {
+            border-radius: 12px;
+            border: none;
+            padding: 20px;
+        }
+
+        .alert-custom i {
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .nav-buttons {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .section-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>
+            <div class="header-icon"><i class="fas fa-table"></i></div>
+            Consulta Masiva de Cobertura
+        </h1>
+        <div class="nav-buttons">
+            <a href="/cobertura/mapa/" class="btn btn-primary"><i class="fas fa-map-marked-alt"></i> Mapa</a>
+            <a href="/cobertura/dashboard/" class="btn btn-primary"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="/cobertura/upload/" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> Upload</a>
+            <a href="/cobertura/2fa/status/" class="btn btn-primary"><i class="fas fa-shield-alt"></i> Seguridad 2FA</a>
+            <button class="btn btn-secondary" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+        </div>
+    </div>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Subir Archivo CSV
+                </div>
+                <button class="btn-info" onclick="document.getElementById('formatModal').style.display='block'">
+                    <i class="fas fa-question-circle"></i> Ver Formato CSV
+                </button>
+            </div>
+
+            <form id="uploadForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="drop-zone" id="dropZone">
+                    <i class="fas fa-file-csv"></i>
+                    <h5>Arrastra tu archivo CSV aquí</h5>
+                    <p>o haz clic para seleccionar desde tu computadora</p>
+                    <input type="file" id="fileInput" name="archivo" accept=".csv" style="display: none;">
+                </div>
+
+                <div id="fileInfo" class="file-info">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="fileName"></span>
+                    <span id="fileSize" style="color: #7f8c8d; margin-left: 10px;"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 16px;" id="submitBtn" disabled>
+                    <i class="fas fa-search"></i> Procesar Consulta
+                </button>
+            </form>
+
+            <!-- Processing -->
+            <div id="processingArea" class="processing-area">
+                <h5 id="processingTitle"><i class="fas fa-spinner fa-spin"></i> Procesando...</h5>
+                <div class="progress progress-custom">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         id="progressBar" 
+                         style="width: 0%">
+                    </div>
+                </div>
+                <p style="margin-top: 15px; margin-bottom: 0; color: #2c3e50;" id="processingText"></p>
+            </div>
+
+            <!-- Result -->
+            <div id="resultArea" class="result-area">
+                <h5><i class="fas fa-check-circle"></i> ¡Procesamiento Completado!</h5>
+                <p id="resultText" style="color: #2c3e50; margin-bottom: 20px;"></p>
+                <a href="#" id="downloadLink" class="btn-download">
+                    <i class="fas fa-download"></i> Descargar Resultados CSV
+                </a>
+            </div>
+
+            <div id="messageContainer"></div>
+        </div>
+
+        <!-- History Section -->
+        <div class="upload-section">
+            <div class="section-title" style="margin-bottom: 25px;">
+                <i class="fas fa-history"></i>
+                Historial de Consultas
+            </div>
+            
+            {% if jobs_recientes %}
+                {% for job in jobs_recientes %}
+                <div class="job-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h6 style="color: #2c3e50; font-weight: 700; margin-bottom: 8px;">
+                                Consulta #{{ job.id }}
+                                <span class="job-status {{ job.status }}">
+                                    {% if job.status == 'completed' %}Completado
+                                    {% elif job.status == 'processing' %}Procesando
+                                    {% elif job.status == 'pending' %}Pendiente
+                                    {% else %}Fallido{% endif %}
+                                </span>
+                            </h6>
+                            <small style="color: #7f8c8d;">
+                                <i class="fas fa-calendar"></i> {{ job.fecha_creacion|date:"d/m/Y H:i" }} - 
+                                <i class="fas fa-database"></i> {{ job.total_registros }} registros
+                            </small>
+                        </div>
+                        <div>
+                            {% if job.status == 'completed' and job.archivo_salida %}
+                            <a href="{{ job.archivo_salida.url }}" class="btn btn-primary" download>
+                                <i class="fas fa-download"></i> Descargar
+                            </a>
+                            {% elif job.status == 'processing' %}
+                            <div class="progress" style="width: 200px; height: 25px;">
+                                <div class="progress-bar" style="width: {{ job.progreso_porcentaje }}%">
+                                    {{ job.progreso_porcentaje }}%
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #95a5a6; padding: 40px 0;">
+                    <i class="fas fa-inbox" style="font-size: 48px; display: block; margin-bottom: 15px;"></i>
+                    No hay consultas previas
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="formatModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;" onclick="if(event.target === this) this.style.display='none'">
+        <div class="modal-content" style="max-width: 800px; width: 90%;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-info-circle"></i> Formato de Archivo CSV</h5>
+                <button type="button" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; cursor: pointer; padding: 5px 15px; border-radius: 5px;" onclick="document.getElementById('formatModal').style.display='none'">×</button>
+            </div>
+            <div class="modal-body">
+                <h6 style="color: #2c3e50; font-weight: 700;">Opción 1: Coordenadas</h6>
+                <p style="color: #7f8c8d;">CSV con columnas <code>latitud,longitud</code> (acepta coma o punto decimal):</p>
+                <div class="example-csv">latitud,longitud
+6.2442,-75.5812
+6,2442,-75,5812
+6.1701,-75.6058</div>
+
+                <hr style="margin: 25px 0;">
+
+                <h6 style="color: #2c3e50; font-weight: 700;">Opción 2: Direcciones</h6>
+                <p style="color: #7f8c8d;">CSV con columna <code>direccion</code>:</p>
+                <div class="example-csv">direccion
+Calle 10 # 45-23, Medellín
+Carrera 50 # 12-34, Envigado
+Avenida El Poblado, Medellín</div>
+
+                <hr style="margin: 25px 0;">
+
+                <div class="alert-custom" style="background: #e3f2fd; color: #1976d2;">
+                    <strong><i class="fas fa-lightbulb"></i> Notas importantes:</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>El archivo debe estar en formato CSV</li>
+                        <li>Máximo 10MB de tamaño</li>
+                        <li>Las coordenadas pueden usar coma (,) o punto (.) como decimal</li>
+                        <li>Procesamiento síncrono para menos de 500 registros</li>
+                        <li>Procesamiento asíncrono (con notificación) para 500+ registros</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const submitBtn = document.getElementById('submitBtn');
+const uploadForm = document.getElementById('uploadForm');
+const processingArea = document.getElementById('processingArea');
+const resultArea = document.getElementById('resultArea');
+const messageContainer = document.getElementById('messageContainer');
+
+// Drag & Drop
+dropZone.addEventListener('click', () => fileInput.click());
+
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+        handleFileSelect();
+    }
+});
+
+fileInput.addEventListener('change', handleFileSelect);
+
+function handleFileSelect() {
+    const file = fileInput.files[0];
+    if (file) {
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            showMessage('Solo se permiten archivos CSV', 'danger');
+            fileInput.value = '';
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            showMessage('El archivo es muy grande (máximo 10MB)', 'danger');
+            fileInput.value = '';
+            return;
+        }
+
+        fileName.textContent = file.name;
+        fileSize.textContent = `(${(file.size / 1024).toFixed(2)} KB)`;
+        fileInfo.style.display = 'block';
+        submitBtn.disabled = false;
+    }
+}
+
+uploadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const formData = new FormData(uploadForm);
+
+    submitBtn.disabled = true;
+    processingArea.style.display = 'block';
+    resultArea.style.display = 'none';
+    
+    document.getElementById('processingText').textContent = 'Subiendo y analizando archivo...';
+    document.getElementById('progressBar').style.width = '30%';
+
+    try {
+        const response = await fetch('/cobertura/api/bulk-query/upload/', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            if (data.tipo === 'sincrono') {
+                document.getElementById('progressBar').style.width = '100%';
+                processingArea.style.display = 'none';
+                resultArea.style.display = 'block';
+                
+                document.getElementById('resultText').textContent = 
+                    `Se procesaron ${data.total_registros} registros exitosamente.`;
+                document.getElementById('downloadLink').href = data.archivo_salida_url;
+                
+                setTimeout(() => location.reload(), 5000);
+            } else {
+                showMessage(
+                    `📊 Archivo en cola de procesamiento<br>` +
+                    `<strong>Total de registros:</strong> ${data.total_registros}<br>` +
+                    `<strong>Tiempo estimado:</strong> ${data.tiempo_estimado_minutos} minutos<br>` +
+                    `Recibirás una notificación cuando esté listo.`,
+                    'info'
+                );
+                processingArea.style.display = 'none';
+                setTimeout(() => location.reload(), 3000);
+            }
+        } else {
+            showMessage(`❌ Error: ${data.error}`, 'danger');
+            processingArea.style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error(error);
+        showMessage('❌ Error de conexión', 'danger');
+        processingArea.style.display = 'none';
+        submitBtn.disabled = false;
+    }
+});
+
+function showMessage(message, type) {
+    const bgColors = {
+        'danger': '#f8d7da',
+        'info': '#d1ecf1',
+        'success': '#d4edda'
+    };
+    const borderColors = {
+        'danger': '#f44336',
+        'info': '#2196F3',
+        'success': '#4caf50'
+    };
+    
+    messageContainer.innerHTML = `
+        <div class="alert-custom" style="background: ${bgColors[type]}; border-left: 4px solid ${borderColors[type]}; margin-top: 20px;">
+            ${message}
+        </div>
+    `;
+    
+    setTimeout(() => {
+        messageContainer.innerHTML = '';
+    }, 5000);
+}
+
+function logout() {
+    window.location.href = '/cobertura/logout/';
+}
+
+// Mostrar modal
+document.getElementById('formatModal').onclick = function(e) {
+    if (e.target === this) {
+        this.style.display = 'none';
+    }
+}
+</script>
+</body>
+</html>
+s

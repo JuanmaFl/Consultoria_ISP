@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Cobertura - Sistema ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            background: #f5f7fa;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            color: #2c3e50;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-logout {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-logout:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            height: calc(100vh - 84px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 420px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* Search Panel */
+        .search-panel {
+            padding: 25px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .search-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 5px;
+            border-radius: 12px;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #7f8c8d;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-search {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-search:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results Panel */
+        .results-panel {
+            padding: 25px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .results-panel h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .result-card.no-coverage {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+        .result-card.has-coverage {
+            border-left-color: #2ecc71;
+            background: #f0fdf4;
+        }
+
+        .coverage-status {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .coverage-status.yes { color: #2ecc71; }
+        .coverage-status.no { color: #e74c3c; }
+
+        /* Collapsible sections */
+        .collapsible-section {
+            margin-top: 15px;
+        }
+
+        .collapsible-header {
+            background: white;
+            padding: 14px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #2c3e50;
+            border: 2px solid #e9ecef;
+        }
+
+        .collapsible-header:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+
+        .collapsible-icon {
+            transition: transform 0.3s;
+            font-size: 16px;
+            color: #667eea;
+        }
+
+        .collapsible-icon.open {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .collapsible-content.open {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .isp-list {
+            padding: 12px 0;
+        }
+        .isp-item {
+            background: white;
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: 8px;
+            font-size: 14px;
+            border: 1px solid #e9ecef;
+            color: #2c3e50;
+        }
+
+        /* Geometry type sections */
+        .geometry-section {
+            margin-top: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .geometry-section.nodos {
+            background: #fff7ed;
+            border: 2px solid #fed7aa;
+        }
+
+        .geometry-section.rutas {
+            background: #eff6ff;
+            border: 2px solid #bfdbfe;
+        }
+
+        .geometry-section.areas {
+            background: #fefce8;
+            border: 2px solid #fde047;
+        }
+
+        .geometry-header {
+            padding: 14px 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .geometry-header:hover {
+            opacity: 0.8;
+        }
+
+        .geometry-header.nodos {
+            color: #c2410c;
+            background: #fed7aa;
+        }
+
+        .geometry-header.rutas {
+            color: #1e3a8a;
+            background: #dbeafe;
+        }
+
+        .geometry-header.areas {
+            color: #713f12;
+            background: #fde047;
+        }
+
+        .geometry-list {
+            padding: 12px;
+        }
+
+        .geometry-hint {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .geometry-hint.nodos {
+            background: #fed7aa;
+            color: #c2410c;
+            border: 1px solid #fdba74;
+        }
+
+        .geometry-hint.rutas {
+            background: #dbeafe;
+            color: #1e3a8a;
+            border: 1px solid #bfdbfe;
+        }
+
+        .geometry-hint.areas {
+            background: #fde047;
+            color: #713f12;
+            border: 1px solid #facc15;
+        }
+
+        .geometry-item {
+            background: white;
+            padding: 12px 14px;
+            margin: 6px 0;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e9ecef;
+        }
+
+        .geometry-item:hover {
+            transform: translateX(8px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .geometry-item.nodos:hover {
+            border-color: #f97316;
+            background: #fff7ed;
+        }
+
+        .geometry-item.rutas:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .geometry-item.areas:hover {
+            border-color: #eab308;
+            background: #fefce8;
+        }
+
+        .geometry-distance {
+            color: #7f8c8d;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        /* Map Container */
+        .map-container {
+            flex: 1;
+            position: relative;
+            background: #f5f7fa;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-info {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            background: white;
+            padding: 14px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            font-size: 13px;
+            color: #2c3e50;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                height: 50vh;
+            }
+            .map-container {
+                height: 50vh;
+            }
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            .header h1 { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <div class="header-icon"><i class="fas fa-map-marked-alt"></i></div>
+            Sistema de Consulta de Cobertura ISP
+        </h1>
+        <div class="nav-buttons">
+            <a href="/cobertura/dashboard/" class="btn-logout btn-primary"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="/cobertura/upload/" class="btn-logout btn-primary"><i class="fas fa-cloud-upload-alt"></i> Upload</a>
+            <a href="/cobertura/bulk-query/" class="btn btn-primary"><i class="fas fa-table"></i> CSV</a>
+            <a href="/cobertura/2fa/status/" class="btn-logout btn-primary"><i class="fas fa-shield-alt"></i> Seguridad 2FA</a>
+            <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Search Panel -->
+            <div class="search-panel">
+                <div class="search-tabs">
+                    <button class="tab active" onclick="switchTab('direccion')">
+                        <i class="fas fa-map-marker-alt"></i> Por Dirección
+                    </button>
+                    <button class="tab" onclick="switchTab('coordenadas')">
+                        <i class="fas fa-crosshairs"></i> Por Coordenadas
+                    </button>
+                </div>
+
+                <!-- Tab: Búsqueda por Dirección -->
+                <div id="tab-direccion" class="tab-content active">
+                    <div class="input-group">
+                        <label for="direccion"><i class="fas fa-search"></i> Dirección</label>
+                        <input type="text" id="direccion" placeholder="Ej: Calle 10 #20-30, Medellín">
+                    </div>
+                    <button class="btn-search" onclick="buscarPorDireccion()">
+                        <i class="fas fa-search"></i> Consultar Cobertura
+                    </button>
+                </div>
+
+                <!-- Tab: Búsqueda por Coordenadas -->
+                <div id="tab-coordenadas" class="tab-content">
+                    <div class="input-group">
+                        <label for="latitud"><i class="fas fa-arrows-alt-v"></i> Latitud</label>
+                        <input type="number" id="latitud" step="any" placeholder="Ej: 6.2442">
+                    </div>
+                    <div class="input-group">
+                        <label for="longitud"><i class="fas fa-arrows-alt-h"></i> Longitud</label>
+                        <input type="number" id="longitud" step="any" placeholder="Ej: -75.5812">
+                    </div>
+                    <button class="btn-search" onclick="buscarPorCoordenadas()">
+                        <i class="fas fa-search"></i> Consultar Cobertura
+                    </button>
+                </div>
+
+                <div class="loading"><i class="fas fa-spinner fa-spin"></i> Consultando cobertura...</div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="results-panel">
+                <div id="results">
+                    <p style="color: #95a5a6; text-align: center; margin-top: 50px;">
+                        <i class="fas fa-info-circle" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                        Haz una búsqueda o haz clic en el mapa para consultar cobertura
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="map-info">
+                <i class="fas fa-mouse-pointer" style="color: #667eea;"></i>
+                Haz clic en cualquier punto del mapa para consultar cobertura
+            </div>
+        </div>
+    </div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places"></script>
+    <script>
+        let map;
+        let marker;
+        let routesPolylines = [];
+
+        // Inicializar mapa centrado en Medellín
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 6.2442, lng: -75.5812 },
+                zoom: 12,
+                mapTypeControl: true,
+                streetViewControl: true,
+                fullscreenControl: true
+            });
+
+            // Click en el mapa para consultar
+            map.addListener('click', (e) => {
+                const lat = e.latLng.lat();
+                const lng = e.latLng.lng();
+                consultarCobertura(lat, lng);
+            });
+
+            // Autocompletar dirección
+            const input = document.getElementById('direccion');
+            const autocomplete = new google.maps.places.Autocomplete(input, {
+                componentRestrictions: { country: 'co' },
+                fields: ['geometry', 'formatted_address']
+            });
+        }
+
+        // Cambiar tabs
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+            if (tab === 'direccion') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('tab-direccion').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('tab-coordenadas').classList.add('active');
+            }
+        }
+
+        // Toggle collapsible
+        function toggleCollapsible(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById(id + '-icon');
+
+            content.classList.toggle('open');
+            icon.classList.toggle('open');
+        }
+
+        // Buscar por dirección
+        async function buscarPorDireccion() {
+            const direccion = document.getElementById('direccion').value;
+            if (!direccion) {
+                alert('Por favor ingresa una dirección');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`/cobertura/api/geocodificar/?direccion=${encodeURIComponent(direccion)}`, {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.resultados && data.resultados.length > 0) {
+                        const resultado = data.resultados[0];
+                        consultarCobertura(resultado.latitud, resultado.longitud);
+                    } else {
+                        alert('No se encontró la dirección');
+                    }
+                } else {
+                    handleError(response);
+                }
+            } catch (error) {
+                alert('Error al buscar dirección');
+                console.error(error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Buscar por coordenadas
+        function buscarPorCoordenadas() {
+            const lat = parseFloat(document.getElementById('latitud').value);
+            const lng = parseFloat(document.getElementById('longitud').value);
+
+            if (isNaN(lat) || isNaN(lng)) {
+                alert('Por favor ingresa coordenadas válidas');
+                return;
+            }
+
+            consultarCobertura(lat, lng);
+        }
+
+        // Consultar cobertura
+        async function consultarCobertura(lat, lng) {
+            showLoading(true);
+
+            // Actualizar mapa y marcador
+            map.setCenter({ lat, lng });
+            if (marker) marker.setMap(null);
+            marker = new google.maps.Marker({
+                position: { lat, lng },
+                map: map,
+                animation: google.maps.Animation.DROP
+            });
+
+            // Limpiar rutas anteriores
+            routesPolylines.forEach(p => p.setMap(null));
+            routesPolylines = [];
+
+            try {
+                const response = await fetch('/cobertura/api/consultar-cobertura/', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        latitud: lat,
+                        longitud: lng,
+                        radio_metros: 1000
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    mostrarResultados(data, lat, lng);
+                } else {
+                    handleError(response);
+                }
+            } catch (error) {
+                alert('Error al consultar cobertura');
+                console.error(error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Mostrar resultados AGRUPADOS POR TIPO
+        function mostrarResultados(data, lat, lng) {
+            const resultsDiv = document.getElementById('results');
+            const tieneCob = data.tiene_cobertura;
+
+            let html = `
+                <div class="result-card ${tieneCob ? 'has-coverage' : 'no-coverage'}">
+                    <div class="coverage-status ${tieneCob ? 'yes' : 'no'}">
+                        ${tieneCob ? '<i class="fas fa-check-circle"></i> HAY COBERTURA' : '<i class="fas fa-times-circle"></i> SIN COBERTURA'}
+                    </div>
+                    <p><strong><i class="fas fa-map-pin"></i> Coordenadas:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>
+                    ${data.distancia_minima_metros ? `<p><strong><i class="fas fa-ruler"></i> Distancia a elemento más cercano:</strong> ${data.distancia_minima_metros}m</p>` : ''}
+            `;
+
+            // ISPs Disponibles - Collapsible
+            if (data.total_isps > 0) {
+                html += `
+                    <div class="collapsible-section">
+                        <div class="collapsible-header" onclick="toggleCollapsible('isp-list')">
+                            <span><i class="fas fa-signal"></i> ISPs Disponibles (${data.total_isps})</span>
+                            <span id="isp-list-icon" class="collapsible-icon"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div id="isp-list" class="collapsible-content">
+                            <div class="isp-list">
+                                ${data.isps_disponibles.map(isp => `<div class="isp-item"><i class="fas fa-wifi"></i> ${isp}</div>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            // NODOS CERCANOS (NARANJA) - Colapsable
+            if (data.nodos_cercanos && data.nodos_cercanos.length > 0) {
+                html += `
+                    <div class="geometry-section nodos">
+                        <div class="geometry-header nodos" onclick="toggleCollapsible('nodos-list')">
+                            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                                <span style="font-size: 24px;">📍</span>
+                                <span>Nodos cercanos (${data.nodos_cercanos.length})</span>
+                            </div>
+                            <span id="nodos-list-icon" class="collapsible-icon open"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div id="nodos-list" class="collapsible-content open">
+                            <div class="geometry-list">
+                                <div class="geometry-hint nodos">
+                                    <i class="fas fa-hand-pointer"></i>
+                                    Haz clic en cualquier nodo para verlo en el mapa
+                                </div>
+                                ${data.nodos_cercanos.map(nodo => `
+                                    <div class="geometry-item nodos" onclick="verGeometriaEnMapa(${nodo.id})">
+                                        <div><strong>📍 ${nodo.proveedor}</strong> - ${nodo.nombre}</div>
+                                        <div class="geometry-distance"><i class="fas fa-location-arrow"></i> ${nodo.distancia_metros}m de distancia</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // RUTAS CERCANAS (AZUL) - Colapsable
+            if (data.rutas_cercanas && data.rutas_cercanas.length > 0) {
+                html += `
+                    <div class="geometry-section rutas">
+                        <div class="geometry-header rutas" onclick="toggleCollapsible('rutas-list')">
+                            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                                <span style="font-size: 24px;">🛣️</span>
+                                <span>Rutas cercanas (${data.rutas_cercanas.length})</span>
+                            </div>
+                            <span id="rutas-list-icon" class="collapsible-icon open"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div id="rutas-list" class="collapsible-content open">
+                            <div class="geometry-list">
+                                <div class="geometry-hint rutas">
+                                    <i class="fas fa-hand-pointer"></i>
+                                    Haz clic en cualquier ruta para verla en el mapa
+                                </div>
+                                ${data.rutas_cercanas.map(ruta => `
+                                    <div class="geometry-item rutas" onclick="verGeometriaEnMapa(${ruta.id})">
+                                        <div><strong>🛣️ ${ruta.proveedor}</strong> - ${ruta.nombre}</div>
+                                        <div class="geometry-distance"><i class="fas fa-location-arrow"></i> ${ruta.distancia_metros}m de distancia</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ÁREAS CERCANAS (AMARILLO) - Colapsable
+            if (data.areas_cercanas && data.areas_cercanas.length > 0) {
+                html += `
+                    <div class="geometry-section areas">
+                        <div class="geometry-header areas" onclick="toggleCollapsible('areas-list')">
+                            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                                <span style="font-size: 24px;">🗺️</span>
+                                <span>Áreas de cobertura (${data.areas_cercanas.length})</span>
+                            </div>
+                            <span id="areas-list-icon" class="collapsible-icon open"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <div id="areas-list" class="collapsible-content open">
+                            <div class="geometry-list">
+                                <div class="geometry-hint areas">
+                                    <i class="fas fa-hand-pointer"></i>
+                                    Haz clic en cualquier área para verla en el mapa
+                                </div>
+                                ${data.areas_cercanas.map(area => `
+                                    <div class="geometry-item areas" onclick="verGeometriaEnMapa(${area.id})">
+                                        <div><strong>🗺️ ${area.proveedor}</strong> - ${area.nombre}</div>
+                                        <div class="geometry-distance"><i class="fas fa-location-arrow"></i> ${area.distancia_metros}m de distancia</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Ver geometría en el mapa
+        async function verGeometriaEnMapa(geometriaId) {
+            try {
+                const url = `/cobertura/api/coberturas/${geometriaId}/`;
+
+                const response = await fetch(url, {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Limpiar geometrías anteriores
+                    routesPolylines.forEach(p => p.setMap(null));
+                    routesPolylines = [];
+
+                    // Dibujar la geometría en el mapa
+                    if (data.geometry) {
+                        const geometry = data.geometry;
+
+                        // Procesar según el tipo de geometría
+                        if (geometry.type === 'LineString') {
+                            const path = geometry.coordinates.map(coord => ({
+                                lat: coord[1],
+                                lng: coord[0]
+                            }));
+
+                            const polyline = new google.maps.Polyline({
+                                path: path,
+                                geodesic: true,
+                                strokeColor: '#3b82f6',
+                                strokeOpacity: 1.0,
+                                strokeWeight: 3,
+                                map: map
+                            });
+
+                            routesPolylines.push(polyline);
+
+                            const bounds = new google.maps.LatLngBounds();
+                            path.forEach(point => bounds.extend(point));
+                            map.fitBounds(bounds);
+                        }
+                        else if (geometry.type === 'MultiLineString') {
+                            geometry.coordinates.forEach((lineCoords) => {
+                                const path = lineCoords.map(coord => ({
+                                    lat: coord[1],
+                                    lng: coord[0]
+                                }));
+
+                                const polyline = new google.maps.Polyline({
+                                    path: path,
+                                    geodesic: true,
+                                    strokeColor: '#3b82f6',
+                                    strokeOpacity: 1.0,
+                                    strokeWeight: 3,
+                                    map: map
+                                });
+
+                                routesPolylines.push(polyline);
+                            });
+
+                            const bounds = new google.maps.LatLngBounds();
+                            geometry.coordinates.forEach(lineCoords => {
+                                lineCoords.forEach(coord => {
+                                    bounds.extend({ lat: coord[1], lng: coord[0] });
+                                });
+                            });
+                            map.fitBounds(bounds);
+                        }
+                        else if (geometry.type === 'Point') {
+                            const marker = new google.maps.Marker({
+                                position: { lat: geometry.coordinates[1], lng: geometry.coordinates[0] },
+                                map: map,
+                                icon: {
+                                    path: google.maps.SymbolPath.CIRCLE,
+                                    scale: 8,
+                                    fillColor: '#f97316',
+                                    fillOpacity: 1,
+                                    strokeColor: '#FFFFFF',
+                                    strokeWeight: 2
+                                }
+                            });
+                            routesPolylines.push(marker);
+                            map.setCenter({ lat: geometry.coordinates[1], lng: geometry.coordinates[0] });
+                            map.setZoom(16);
+                        }
+                        else if (geometry.type === 'MultiPoint') {
+                            geometry.coordinates.forEach(coord => {
+                                const marker = new google.maps.Marker({
+                                    position: { lat: coord[1], lng: coord[0] },
+                                    map: map,
+                                    icon: {
+                                        path: google.maps.SymbolPath.CIRCLE,
+                                        scale: 8,
+                                        fillColor: '#f97316',
+                                        fillOpacity: 1,
+                                        strokeColor: '#FFFFFF',
+                                        strokeWeight: 2
+                                    }
+                                });
+                                routesPolylines.push(marker);
+                            });
+
+                            if (geometry.coordinates.length > 0) {
+                                map.setCenter({ lat: geometry.coordinates[0][1], lng: geometry.coordinates[0][0] });
+                                map.setZoom(16);
+                            }
+                        }
+                        else if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
+                            const processPolygon = (coords) => {
+                                const path = coords[0].map(coord => ({
+                                    lat: coord[1],
+                                    lng: coord[0]
+                                }));
+
+                                const polygon = new google.maps.Polygon({
+                                    paths: path,
+                                    strokeColor: '#eab308',
+                                    strokeOpacity: 0.8,
+                                    strokeWeight: 2,
+                                    fillColor: '#eab308',
+                                    fillOpacity: 0.2,
+                                    map: map
+                                });
+
+                                routesPolylines.push(polygon);
+                                return path;
+                            };
+
+                            const bounds = new google.maps.LatLngBounds();
+
+                            if (geometry.type === 'Polygon') {
+                                const path = processPolygon(geometry.coordinates);
+                                path.forEach(point => bounds.extend(point));
+                            } else {
+                                geometry.coordinates.forEach(polygonCoords => {
+                                    const path = processPolygon(polygonCoords);
+                                    path.forEach(point => bounds.extend(point));
+                                });
+                            }
+
+                            map.fitBounds(bounds);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al visualizar la geometría');
+            }
+        }
+
+        // Manejo de errores
+        function handleError(response) {
+            if (response.status === 401 || response.status === 403) {
+                alert('Sesión expirada. Por favor inicia sesión nuevamente.');
+                logout();
+            } else {
+                alert('Error en la consulta. Intenta nuevamente.');
+            }
+        }
+
+        // Mostrar/ocultar loading
+        function showLoading(show) {
+            document.querySelector('.loading').style.display = show ? 'block' : 'none';
+            document.querySelectorAll('.btn-search').forEach(btn => btn.disabled = show);
+        }
+
+        // Logout
+        function logout() {
+            window.location.href = '/cobertura/logout/';
+        }
+
+        // Inicializar
+        window.onload = initMap;
+    </script>
+</body>
+</html>
