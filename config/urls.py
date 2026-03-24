@@ -3,7 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
-from api.views import login_view, mapa_view
+from api.views import login_view, mapa_view, registro_view
 from api import views
 from api import views_bulk_query
 
@@ -11,6 +11,7 @@ urlpatterns = [
     path('cobertura/admin/', admin.site.urls),
     path('cobertura/api/', include('api.urls')),
     path('cobertura/login/', login_view, name='login'),
+    path('cobertura/registro/', registro_view, name='registro'),
     path('cobertura/mapa/', mapa_view, name='mapa'),
     path('cobertura/dashboard/', views.dashboard_view, name='dashboard'),
     path('cobertura/upload/', views.upload_view, name='upload'),

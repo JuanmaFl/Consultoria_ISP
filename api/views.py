@@ -949,49 +949,66 @@ def _agrupar_por_tipo(coberturas):
     return nodos, rutas, areas
 
 def _consultar_por_coordenadas(latitud, longitud, radio_metros):
-    punto_consulta = Point(float(longitud), float(latitud), srid=4326)
+    try:
+        # Convertir a float por seguridad
+        lat = float(latitud)
+        lng = float(longitud)
+        
+        punto_consulta = Point(lng, lat, srid=4326)
+
+        # --- AJUSTE PARA SPATIALITE ---
+        # 1 grado aprox = 111,111 metros. 
+        # Convertimos el radio de metros a grados decimales (aprox)
+        radio_en_grados = float(radio_metros) / 111111.0
+
+        # Usamos __dwithin con grados decimales (lo que SpatiaLite exige)
+        # Luego usamos Distance para obtener los metros exactos
+        coberturas_cercanas = CoberturaISP.objects.filter(
+            geom__dwithin=(punto_consulta, radio_en_grados)
+        ).annotate(
+            distancia=Distance('geom', punto_consulta)
+        ).order_by('distancia')
+
+        # Convertir QuerySet a lista de proveedores únicos
+        isps_qs = coberturas_cercanas.values_list("proveedor", flat=True).distinct()
+        isps_disponibles = [str(x) for x in isps_qs if x]
+
+        distancia_minima = None
+        if coberturas_cercanas.exists():
+            primera = coberturas_cercanas.first()
+            # Extraemos el valor flotante de la distancia
+            if hasattr(primera, 'distancia') and primera.distancia is not None:
+                # GeoDjango Distance object -> metros
+                try:
+                    distancia_minima = round(primera.distancia.m, 2)
+                except AttributeError:
+                    distancia_minima = round(float(primera.distancia), 2)
+
+        # Agrupar elementos para el panel lateral
+        nodos, rutas, areas = _agrupar_por_tipo(coberturas_cercanas[:100])
+
+        # Al final de _consultar_por_coordenadas, dentro del return:
+        return {
+            "tiene_cobertura": len(isps_disponibles) > 0,
+            "isps_disponibles": isps_disponibles,
+            "total_isps": len(isps_disponibles),
+            "distancia_minima_metros": distancia_minima,
+            "nodos_cercanos": nodos,
+            "rutas_cercanas": rutas,
+            "areas_cercanas": areas,
+            # Agregamos estos campos para que el Serializer no explote:
+            "total_nodos": len(nodos),
+            "total_rutas": len(rutas),
+            "total_areas": len(areas),
+            "total_elementos": len(nodos) + len(rutas) + len(areas)
+        }
+        
+    except Exception as e:
+        print(f"\n--- ERROR EN CONSULTA ---")
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e), "tiene_cobertura": False}
     
-    # Usamos sintaxis pura de GeoDjango compatible con SpatiaLite
-    coberturas_cercanas = CoberturaISP.objects.filter(
-        geom__dwithin=(punto_consulta, D(m=radio_metros))
-    ).annotate(
-        distancia=Distance('geom', punto_consulta)
-    ).order_by('distancia')
-
-    # Obtener ISPs únicos
-    isps_disponibles = list(
-        coberturas_cercanas.values_list("proveedor", flat=True)
-        .distinct()
-        .exclude(proveedor__isnull=True)
-        .exclude(proveedor="")
-    )
-
-    # Distancia mínima
-    distancia_minima = None
-    if coberturas_cercanas.exists():
-        primera = coberturas_cercanas.first()
-        try:
-            distancia_minima = round(primera.distancia.m, 2)
-        except AttributeError:
-            distancia_minima = round(float(primera.distancia), 2)
-
-    # Agrupamos resultados
-    nodos, rutas, areas = _agrupar_por_tipo(coberturas_cercanas[:100])
-
-    return {
-        "tiene_cobertura": len(isps_disponibles) > 0,
-        "isps_disponibles": isps_disponibles,
-        "total_isps": len(isps_disponibles),
-        "distancia_minima_metros": distancia_minima,
-        "nodos_cercanos": nodos,
-        "rutas_cercanas": rutas,
-        "areas_cercanas": areas,
-        "total_nodos": len(nodos),
-        "total_rutas": len(rutas),
-        "total_areas": len(areas),
-        "total_elementos": len(nodos) + len(rutas) + len(areas),
-    }
-
 def _geocodificar_con_google(direccion):
     api_key = getattr(settings, "GOOGLE_MAPS_API_KEY", "")
     if not api_key:
@@ -1214,9 +1231,74 @@ def detalle_isp(request, nombre_isp):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def upload_kmz(request):
-    """Placeholder para la función de subida (asegúrate de tener utils.py listo)"""
-    return Response({"mensaje": "Endpoint de subida detectado. Implementa la lógica de utils.py para procesar."}, status=200)
+    """
+    Endpoint real para procesar archivos KMZ/KML
+    """
+    from .utils import KMZValidator, KMZProcessor
+    import zipfile
 
+    if 'archivo' not in request.FILES:
+        return Response({'error': 'No se proporcionó ningún archivo'}, status=400)
+
+    archivo = request.FILES['archivo']
+
+    try:
+        # 1. Validaciones básicas
+        KMZValidator.validate_file_extension(archivo.name)
+        KMZValidator.validate_file_size(archivo.size)
+
+        # 2. Detectar proveedor
+        proveedor = KMZProcessor.extract_provider_from_filename(archivo.name)
+
+        # 3. Evitar duplicados
+        if KMZProcessor.check_duplicates(archivo.name, proveedor):
+            return Response({
+                'error': f'El archivo "{archivo.name}" ya fue procesado anteriormente.',
+                'detalle': 'Si deseas actualizarlo, elimínalo primero desde el panel de administración.'
+            }, status=409)
+
+        # 4. Leer contenido (maneja KMZ como ZIP o KML directo)
+        archivo.seek(0)
+        if archivo.name.lower().endswith('.kmz'):
+            kml_filename = KMZValidator.validate_zip_structure(archivo)
+            archivo.seek(0)
+            with zipfile.ZipFile(archivo, 'r') as zip_ref:
+                kml_content = zip_ref.read(kml_filename)
+        else:
+            kml_content = archivo.read()
+
+        # 5. Extraer geometrías
+        geometries = KMZProcessor.parse_kml_content(kml_content)
+
+        # 6. Guardar en Base de Datos
+        archivo.seek(0)
+        result = KMZProcessor.save_geometries_to_db(
+            geometries=geometries,
+            archivo_origen=archivo.name,
+            proveedor=proveedor,
+            usuario=request.user,
+            archivo_fisico=archivo
+        )
+
+        return Response({
+            'success': True,
+            'mensaje': f'Se importaron correctamente los datos de {proveedor}',
+            'proveedor': proveedor,
+            'estadisticas': {
+                'total_elementos': result['total_count'],
+                'guardados': result['saved_count'],
+                'errores': len(result['errors'])
+            }
+        }, status=201)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc() # Esto te dirá el error exacto en la consola negra
+        return Response({
+            'error': 'Error interno al procesar el archivo',
+            'detalle': str(e)
+        }, status=500)
+        
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def listar_archivos_kmz(request):

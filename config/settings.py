@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ==============================================================================
 
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = True
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
 APPEND_SLASH = True
@@ -88,13 +88,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # DATABASE
 # ==============================================================================
 
-if os.getenv('DATABASE_ENGINE') == 'sqlite3':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Cambiado aquí
-            'NAME': BASE_DIR / 'db.sqlite3',
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 20,
         }
     }
+}
 # ==============================================================================
 # AUTH & PASSWORD VALIDATION
 # ==============================================================================
@@ -247,14 +249,15 @@ LOGGING = {
 # ==============================================================================
 # GEODJANGO CONFIGURATION (WINDOWS)
 # ==============================================================================
-# settings.py (al principio, justo después de los imports de Path)
 import os
-import sys
 
 OSGEO4W_ROOT = r'C:\OSGeo4W'
-# Insertamos la ruta al inicio del PATH ambiental
+# Esto asegura que las DLLs de soporte estén disponibles para el sistema
 os.environ['PATH'] = os.path.join(OSGEO4W_ROOT, 'bin') + os.pathsep + os.environ['PATH']
 
-# Configuraciones explícitas
+# Rutas de las librerías
 GDAL_LIBRARY_PATH = r'C:\OSGeo4W\bin\gdal312.dll'
 GEOS_LIBRARY_PATH = r'C:\OSGeo4W\bin\geos_c.dll'
+
+# MODIFICA ESTA LÍNEA: Usa la ruta absoluta para evitar ambigüedades
+SPATIALITE_LIBRARY_PATH = r'C:\OSGeo4W\bin\mod_spatialite.dll'

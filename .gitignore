@@ -97,3 +97,19 @@ ehthumbs.db
 node_modules/
 npm-debug.log
 yarn-error.log
+
+# Excluir carpeta de archivos subidos (KMZ, imágenes, etc.)
+media/
+media/*
+
+# Excluir base de datos local (opcional, pero recomendado)
+db.sqlite3
+db.sqlite3-journal
+
+# Entorno virtual
+venv/
+.env
+
+# Archivos temporales de Python
+__pycache__/
+*.py[cod]

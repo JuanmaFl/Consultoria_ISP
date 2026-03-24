@@ -3,1010 +3,500 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload KMZ - Sistema de Cobertura ISP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Gestión de Cobertura KMZ | Sistema ISP Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --radius: 16px;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
-        /* Header */
-        .header {
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 20px 40px;
+        /* --- NAVIGATION --- */
+        .navbar {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .header h1 {
-            color: #2c3e50;
-            font-size: 28px;
-            font-weight: 700;
+        .logo {
             display: flex;
             align-items: center;
-            gap: 15px;
-        }
-
-        .header-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            gap: 0.75rem;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--primary);
             text-decoration: none;
-            display: inline-flex;
+        }
+
+        .nav-links { display: flex; gap: 1rem; }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.5rem;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
+        .nav-btn-outline { color: var(--secondary); border: 1px solid #e2e8f0; }
+        .nav-btn-outline:hover { background: #f1f5f9; color: var(--primary); border-color: var(--primary-light); }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
+        .nav-btn-danger { color: var(--error); border: 1px solid #fee2e2; }
+        .nav-btn-danger:hover { background: var(--error); color: white; }
 
-        .btn-secondary {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        .btn-secondary:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        /* Main Container */
-        .container {
+        /* --- MAIN LAYOUT --- */
+        .main-container {
             max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 40px;
+            margin: 2.5rem auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 2rem;
         }
 
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-bottom: 30px;
+        /* --- UPLOAD SECTION --- */
+        .upload-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.7);
         }
 
-        .card-title {
-            color: #2c3e50;
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .section-header { margin-bottom: 2rem; }
+        .section-header h2 { font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem; color: #0f172a; }
+        .section-header p { color: var(--text-muted); font-size: 0.95rem; }
 
-        .card-title i {
-            color: #667eea;
-        }
-
-        .card-subtitle {
-            color: #7f8c8d;
-            font-size: 16px;
-            margin-bottom: 30px;
-        }
-
-        /* Instructions Box */
-        .instructions-box {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-
-        .instructions-box h3 {
-            color: #2c3e50;
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .instructions-box ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .instructions-box li {
-            color: #2c3e50;
-            font-size: 14px;
-            margin-bottom: 10px;
-            padding-left: 25px;
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius);
+            padding: 4rem 2rem;
+            text-align: center;
+            background: #fdfdfd;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
 
-        .instructions-box li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #667eea;
-            font-weight: bold;
-        }
-
-        .instructions-box code {
-            background: #e9ecef;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-        }
-
-        /* Drop Zone */
-        .drop-zone {
-            border: 3px dashed #d1d5db;
-            border-radius: 16px;
-            padding: 60px 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #f8f9fa;
-        }
-
-        .drop-zone:hover,
-        .drop-zone.dragover {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
-            transform: scale(1.02);
-        }
-
-        .drop-zone-icon {
-            font-size: 64px;
-            color: #d1d5db;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-        }
-
-        .drop-zone:hover .drop-zone-icon {
-            color: #667eea;
-            transform: scale(1.1);
-        }
-
-        .drop-zone-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .drop-zone-subtitle {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-bottom: 20px;
-        }
-
-        .btn-select-file {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 14px 32px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-select-file:hover {
+        .drop-zone:hover, .drop-zone.dragover {
+            background: #f5f7ff;
+            border-color: var(--primary-light);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-        /* File Preview */
-        .file-preview {
-            display: none;
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 30px;
-        }
-
-        .file-preview.show {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            animation: slideIn 0.3s;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .file-preview-content {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .file-icon {
-            font-size: 48px;
-            color: #667eea;
-        }
-
-        .file-info h4 {
-            color: #2c3e50;
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .file-info p {
-            color: #7f8c8d;
-            font-size: 13px;
-            margin: 2px 0;
-        }
-
-        .file-provider {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .btn-remove {
-            background: white;
-            color: #e74c3c;
-            border: 2px solid #e74c3c;
-            width: 40px;
-            height: 40px;
+        .drop-zone-icon-wrap {
+            width: 80px;
+            height: 80px;
+            background: #eef2ff;
             border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .btn-remove:hover {
-            background: #e74c3c;
-            color: white;
-            transform: rotate(90deg);
-        }
-
-        /* Upload Button */
-        .btn-upload {
-            width: 100%;
-            margin-top: 20px;
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white;
-            padding: 16px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
+            margin: 0 auto 1.5rem;
+            color: var(--primary);
+            font-size: 2rem;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
 
-        .btn-upload:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
-        }
+        .drop-zone:hover .drop-zone-icon-wrap { transform: scale(1.1) rotate(5deg); background: var(--primary); color: white; }
 
-        .btn-upload:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Progress Bar */
-        .progress-container {
-            display: none;
-            margin-top: 30px;
-        }
-
-        .progress-container.show {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .progress-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .progress-percent {
-            font-size: 14px;
-            font-weight: 700;
-            color: #667eea;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 12px;
-            background: #e9ecef;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            transition: width 0.3s ease;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
-        }
-
-        .progress-message {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #7f8c8d;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .progress-message i {
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Result Messages */
-        .result-message {
-            display: none;
-            margin-top: 30px;
+        /* --- FILE PREVIEW --- */
+        .file-preview {
+            margin-top: 1.5rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 20px;
-            animation: slideIn 0.3s;
-        }
-
-        .result-message.show {
-            display: block;
-        }
-
-        .result-success {
-            background: #f0fdf4;
-            border-left: 4px solid #2ecc71;
-        }
-
-        .result-error {
-            background: #fff5f5;
-            border-left: 4px solid #e74c3c;
-        }
-
-        .result-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-        }
-
-        .result-icon {
-            font-size: 28px;
-            margin-top: 2px;
-        }
-
-        .result-icon.success {
-            color: #2ecc71;
-        }
-
-        .result-icon.error {
-            color: #e74c3c;
-        }
-
-        .result-content h3 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .result-success h3 {
-            color: #27ae60;
-        }
-
-        .result-error h3 {
-            color: #c0392b;
-        }
-
-        .result-detail {
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-
-        .result-success .result-detail {
-            color: #27ae60;
-        }
-
-        .result-error .result-detail {
-            color: #c0392b;
-        }
-
-        .result-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .stat-box {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border: 2px solid #e9ecef;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 800;
-            color: #2ecc71;
-        }
-
-        .stat-value.warning {
-            color: #f39c12;
-        }
-
-        /* Recent Files List */
-        .files-list {
-            margin-top: 20px;
-        }
-
-        .file-item {
-            border: 1px solid #e9ecef;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 12px;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .file-item:hover {
-            background: #f8f9fa;
-            border-color: #667eea;
-            transform: translateX(5px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
-        }
-
-        .file-item-header {
-            display: flex;
+            padding: 1.25rem;
+            display: none;
             align-items: center;
             justify-content: space-between;
+            animation: fadeIn 0.4s ease;
         }
 
-        .file-item-left {
+        .file-preview.active { display: flex; }
+
+        .file-meta { display: flex; align-items: center; gap: 1rem; }
+        .file-icon-box { font-size: 2.5rem; color: var(--primary); }
+        .file-name { font-weight: 700; font-size: 1rem; color: #334155; }
+        .file-size { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* --- PROGRESS SYSTEM --- */
+        .progress-section { margin-top: 2rem; display: none; }
+        .progress-section.active { display: block; }
+
+        .progress-info { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-weight: 700; font-size: 0.9rem; }
+        .progress-bar-container { height: 10px; background: #e2e8f0; border-radius: 20px; overflow: hidden; }
+        .progress-bar-fill { 
+            width: 0%; 
+            height: 100%; 
+            background: linear-gradient(90deg, var(--primary), var(--primary-light)); 
+            transition: width 0.4s cubic-bezier(0.1, 0.7, 1.0, 0.1); 
+        }
+
+        /* --- BUTTONS --- */
+        .btn-action {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1.5rem;
+            font-size: 1rem;
             display: flex;
             align-items: center;
-            gap: 15px;
+            justify-content: center;
+            gap: 0.75rem;
         }
 
-        .file-item-icon {
-            font-size: 32px;
-            color: #667eea;
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.23); }
+        .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+
+        /* --- HISTORY PANEL --- */
+        .side-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+        
+        .history-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #e2e8f0;
         }
 
-        .file-item-info h4 {
-            color: #2c3e50;
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 5px;
+        .history-list { margin-top: 1rem; max-height: 500px; overflow-y: auto; }
+
+        .history-item {
+            padding: 1rem;
+            border-radius: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s;
+        }
+        .history-item:hover { background: #f8fafc; padding-left: 1.25rem; }
+
+        .item-icon { 
+            min-width: 40px; height: 40px; background: #f1f5f9; 
+            border-radius: 8px; display: flex; align-items: center; 
+            justify-content: center; color: var(--primary); 
         }
 
-        .file-item-info p {
-            color: #7f8c8d;
-            font-size: 13px;
-        }
+        .item-content h4 { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .item-content p { font-size: 0.75rem; color: var(--text-muted); }
 
-        .file-item-date {
-            text-align: right;
+        /* --- RESULT MESSAGES --- */
+        .alert { 
+            padding: 1.25rem; border-radius: 12px; margin-top: 1.5rem; 
+            display: none; animation: slideIn 0.3s ease-out; 
         }
+        .alert-success { background: #ecfdf5; border-left: 5px solid var(--success); color: #065f46; }
+        .alert-error { background: #fef2f2; border-left: 5px solid var(--error); color: #991b1b; }
 
-        .file-item-date p {
-            color: #7f8c8d;
-            font-size: 12px;
-        }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+        .stat-pill { background: white; padding: 0.5rem; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.05); }
+        .stat-num { display: block; font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); }
 
-        /* Loading State */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(-10px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        .loading i {
-            font-size: 36px;
-            color: #667eea;
-            margin-bottom: 15px;
-            animation: spin 1s linear infinite;
-        }
+        /* Scrollbar Custom */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 40px;
-            color: #7f8c8d;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            color: #d1d5db;
-            margin-bottom: 15px;
-        }
-
-        .empty-state p {
-            font-size: 15px;
-        }
-
-        /* Hidden Input */
-        #file-input {
-            display: none;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container { padding: 0 20px; }
-            .header { padding: 15px 20px; flex-direction: column; gap: 15px; }
-            .header h1 { font-size: 20px; }
-            .nav-buttons { flex-wrap: wrap; }
-            .card { padding: 25px; }
-            .drop-zone { padding: 40px 20px; }
-            .result-stats { grid-template-columns: 1fr; }
-            .file-item-header { flex-direction: column; gap: 15px; }
-            .file-item-date { text-align: left; }
-        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>
-            <div class="header-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-            Upload de Archivos KMZ
-        </h1>
-        <div class="nav-buttons">
-            <a href="/cobertura/mapa/" class="btn btn-primary"><i class="fas fa-map-marked-alt"></i> Mapa</a>
-            <a href="/cobertura/dashboard/" class="btn btn-primary"><i class="fas fa-chart-line"></i> Dashboard</a>
-            <a href="/cobertura/bulk-query/" class="btn btn-primary"><i class="fas fa-table"></i> CSV</a>
-            <a href="/cobertura/2fa/status/" class="btn btn-primary"><i class="fas fa-shield-alt"></i> Seguridad 2FA</a>
-            <button class="btn btn-secondary" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+
+    <nav class="navbar">
+        <a href="#" class="logo">
+            <i class="fas fa-network-wired"></i>
+            <span>ISP GEOPRO</span>
+        </a>
+        <div class="nav-links">
+            <a href="/cobertura/mapa/" class="nav-btn nav-btn-outline"><i class="fas fa-map-marked-alt"></i> Mapa</a>
+            
+            <a href="/cobertura/bulk-query/" class="nav-btn nav-btn-outline"><i class="fas fa-table"></i> Masivos</a>
+            <a href="/cobertura/logout/" class="nav-btn nav-btn-danger"><i class="fas fa-sign-out-alt"></i> Salir</a>
         </div>
-    </div>
+    </nav>
 
-    <div class="container">
-        <!-- Upload Card -->
-        <div class="card">
-            <h2 class="card-title">
-                <i class="fas fa-upload"></i>
-                Subir Archivo KMZ
-            </h2>
-            <p class="card-subtitle">Carga archivos KMZ con información de cobertura de proveedores ISP</p>
+    <div class="main-container">
+        <main>
+            <div class="upload-card">
+                <div class="section-header">
+                    <h2>Subir Cobertura</h2>
+                    <p>Actualiza la red de fibra óptica y nodos mediante archivos KMZ procesados desde Google Earth.</p>
+                </div>
 
-            <!-- Instructions -->
-            <div class="instructions-box">
-                <h3><i class="fas fa-info-circle"></i> Instrucciones</h3>
-                <ul>
-                    <li>Formatos permitidos: <strong>.kmz</strong> o <strong>.kml</strong></li>
-                    <li>Tamaño máximo: <strong>50 MB</strong></li>
-                    <li>El nombre del archivo debe contener el proveedor (ej: <code>avidtel_zona1.kmz</code>)</li>
-                    <li>No se permiten archivos duplicados</li>
-                </ul>
-            </div>
-
-            <!-- Drop Zone -->
-            <div id="drop-zone" class="drop-zone">
-                <input type="file" id="file-input" accept=".kmz,.kml">
-                <div id="drop-zone-content">
-                    <div class="drop-zone-icon">
+                <div class="drop-zone" id="drop-zone">
+                    <input type="file" id="file-input" hidden accept=".kmz,.kml">
+                    <div class="drop-zone-icon-wrap">
                         <i class="fas fa-cloud-upload-alt"></i>
                     </div>
-                    <div class="drop-zone-title">Arrastra tu archivo KMZ aquí</div>
-                    <div class="drop-zone-subtitle">o haz clic para seleccionar desde tu equipo</div>
-                    <button type="button" class="btn-select-file" onclick="document.getElementById('file-input').click()">
-                        <i class="fas fa-folder-open"></i>
-                        Seleccionar Archivo
-                    </button>
+                    <h3 style="font-weight: 700; margin-bottom: 0.5rem;">Arrastra o selecciona un archivo</h3>
+                    <p>Soportamos formatos .KMZ y .KML (máx 50MB)</p>
                 </div>
-            </div>
 
-            <!-- File Preview -->
-            <div id="file-preview" class="file-preview">
-                <div class="file-preview-content">
-                    <div class="file-icon">
-                        <i class="fas fa-file-archive"></i>
+                <div class="file-preview" id="file-preview">
+                    <div class="file-meta">
+                        <div class="file-icon-box"><i class="fas fa-file-archive"></i></div>
+                        <div class="file-info">
+                            <div class="file-name" id="p-name">archivo.kmz</div>
+                            <div class="file-size" id="p-size">0.0 KB</div>
+                        </div>
                     </div>
-                    <div class="file-info">
-                        <h4 id="file-name">archivo.kmz</h4>
-                        <p id="file-size">0 KB</p>
-                        <p class="file-provider" id="file-provider">Proveedor: Detectando...</p>
+                    <button class="nav-btn nav-btn-danger" onclick="resetFile()" style="padding: 0.5rem;"><i class="fas fa-trash"></i></button>
+                </div>
+
+                <div class="progress-section" id="prog-sec">
+                    <div class="progress-info">
+                        <span id="prog-status">Procesando...</span>
+                        <span id="prog-perc">0%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="prog-fill"></div>
                     </div>
                 </div>
-                <button class="btn-remove" onclick="clearFile()">
-                    <i class="fas fa-times"></i>
+
+                <button class="btn-action btn-primary" id="btn-upload" style="display: none;" onclick="startUpload()">
+                    <i class="fas fa-bolt"></i> PROCESAR INFRAESTRUCTURA
                 </button>
-            </div>
 
-            <!-- Upload Button -->
-            <button id="upload-btn" class="btn-upload" onclick="uploadFile()" style="display: none;">
-                <i class="fas fa-upload"></i>
-                Subir y Procesar Archivo
-            </button>
-
-            <!-- Progress Bar -->
-            <div id="progress-container" class="progress-container">
-                <div class="progress-header">
-                    <span class="progress-label">Procesando archivo...</span>
-                    <span id="progress-percent" class="progress-percent">0%</span>
-                </div>
-                <div class="progress-bar-container">
-                    <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
-                </div>
-                <div class="progress-message" id="progress-message">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    Validando archivo...
-                </div>
-            </div>
-
-            <!-- Result Message -->
-            <div id="result-message" class="result-message"></div>
-        </div>
-
-        <!-- Recent Files -->
-        <div class="card">
-            <h2 class="card-title">
-                <i class="fas fa-history"></i>
-                Archivos Procesados Recientemente
-            </h2>
-            <div id="files-list" class="files-list">
-                <div class="loading">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Cargando archivos...</p>
+                <div id="alert-box" class="alert">
+                    <div style="display:flex; gap: 1rem; align-items: flex-start;">
+                        <i id="alert-icon" class="fas fa-check-circle" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <h4 id="alert-title" style="margin-bottom: 0.25rem;">Éxito</h4>
+                            <p id="alert-text" style="font-size: 0.85rem;">El archivo se procesó correctamente.</p>
+                            
+                            <div id="alert-stats" class="stat-grid" style="display:none;">
+                                <div class="stat-pill">
+                                    <span class="stat-num" id="s-total">0</span>
+                                    <span class="stat-label">Detectados</span>
+                                </div>
+                                <div class="stat-pill">
+                                    <span class="stat-num" id="s-saved" style="color: var(--success);">0</span>
+                                    <span class="stat-label">Importados</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
+
+        <aside class="side-panel">
+            <div class="history-card">
+                <h3 style="font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-history" style="color: var(--primary);"></i>
+                    Archivos Recientes
+                </h3>
+                <div class="history-list" id="hist-list">
+                    <p style="text-align:center; color: var(--text-muted); font-size: 0.8rem; padding: 2rem;">Cargando historial...</p>
+                </div>
+            </div>
+
+            <div class="history-card" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white;">
+                <h4 style="color: var(--primary-light); margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Reglas de Importación</h4>
+                <ul style="list-style: none; font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <li><i class="fas fa-check" style="color: var(--success);"></i> El nombre del archivo debe incluir el ISP.</li>
+                    <li><i class="fas fa-check" style="color: var(--success);"></i> Los duplicados se omiten automáticamente.</li>
+                    <li><i class="fas fa-check" style="color: var(--success);"></i> Se extraen metadatos de campos personalizados.</li>
+                </ul>
+            </div>
+        </aside>
     </div>
 
     <script>
-        let selectedFile = null;
-        const API_BASE = '/cobertura/api';
+        let currentFile = null;
 
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-
-        dropZone.addEventListener('click', () => fileInput.click());
-
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileSelect(files[0]);
-            }
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileSelect(e.target.files[0]);
-            }
-        });
-
-        function handleFileSelect(file) {
-            const validExtensions = ['.kmz', '.kml'];
-            const fileName = file.name.toLowerCase();
-            const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
-
-            if (!hasValidExtension) {
-                showError('Formato no válido. Solo se permiten archivos .kmz o .kml');
-                return;
-            }
-
-            const maxSize = 50 * 1024 * 1024;
-            if (file.size > maxSize) {
-                showError('Archivo muy grande. El tamaño máximo es 50 MB');
-                return;
-            }
-
-            selectedFile = file;
-            const provider = detectProvider(fileName);
-
-            document.getElementById('file-preview').classList.add('show');
-            document.getElementById('upload-btn').style.display = 'flex';
-            document.getElementById('file-name').textContent = file.name;
-            document.getElementById('file-size').textContent = formatFileSize(file.size);
-            document.getElementById('file-provider').textContent = `Proveedor detectado: ${provider}`;
-            document.getElementById('result-message').classList.remove('show');
-        }
-
-        function detectProvider(filename) {
-            const name = filename.toLowerCase();
-            if (name.includes('avidtel')) return 'Avidtel';
-            if (name.includes('fibra') || name.includes('optica')) return 'Fibra Óptica Antioquia';
-            if (name.includes('starnet')) return 'Starnet';
-            if (name.includes('technet')) return 'Technet';
-            return filename.replace(/\.(kmz|kml)$/i, '').replace(/_/g, ' ');
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-        }
-
-        function clearFile() {
-            selectedFile = null;
-            fileInput.value = '';
-            document.getElementById('file-preview').classList.remove('show');
-            document.getElementById('upload-btn').style.display = 'none';
-            document.getElementById('result-message').classList.remove('show');
-            document.getElementById('progress-container').classList.remove('show');
-        }
-
-        async function uploadFile() {
-            if (!selectedFile) return;
-
-            const formData = new FormData();
-            formData.append('archivo', selectedFile);
-
-            document.getElementById('progress-container').classList.add('show');
-            document.getElementById('upload-btn').disabled = true;
-
-            updateProgress(10, 'Validando archivo...');
-
-            try {
-                const xhr = new XMLHttpRequest();
-
-                xhr.upload.addEventListener('progress', (e) => {
-                    if (e.lengthComputable) {
-                        const percentComplete = Math.round((e.loaded / e.total) * 70) + 10;
-                        updateProgress(percentComplete, 'Subiendo archivo...');
+        // --- SEGURIDAD CSRF (Obligatorio para evitar 403) ---
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
                     }
-                });
-
-                xhr.addEventListener('load', async () => {
-                    updateProgress(90, 'Procesando geometrías...');
-
-                    setTimeout(() => {
-                        if (xhr.status === 201) {
-                            const response = JSON.parse(xhr.responseText);
-                            updateProgress(100, '¡Completado!');
-                            showSuccess(response);
-                            clearFile();
-                            loadArchivos();
-                        } else {
-                            const error = JSON.parse(xhr.responseText);
-                            showError(error.error || 'Error al procesar el archivo', error.detalle);
-                        }
-
-                        document.getElementById('upload-btn').disabled = false;
-
-                        setTimeout(() => {
-                            document.getElementById('progress-container').classList.remove('show');
-                        }, 2000);
-                    }, 500);
-                });
-
-                xhr.addEventListener('error', () => {
-                    showError('Error de conexión. Verifica tu red e intenta de nuevo.');
-                    document.getElementById('upload-btn').disabled = false;
-                });
-
-                xhr.open('POST', `${API_BASE}/upload-kmz/`);
-                xhr.withCredentials = true;
-                xhr.send(formData);
-
-            } catch (error) {
-                showError('Error inesperado: ' + error.message);
-                document.getElementById('upload-btn').disabled = false;
-            }
-        }
-
-        function updateProgress(percent, message) {
-            document.getElementById('progress-bar').style.width = percent + '%';
-            document.getElementById('progress-percent').textContent = percent + '%';
-            document.getElementById('progress-message').innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${message}`;
-        }
-
-        function showSuccess(response) {
-            const resultDiv = document.getElementById('result-message');
-            resultDiv.className = 'result-message result-success show';
-            resultDiv.innerHTML = `
-                <div class="result-header">
-                    <i class="fas fa-check-circle result-icon success"></i>
-                    <div class="result-content">
-                        <h3>${response.mensaje}</h3>
-                        <p class="result-detail"><strong>Proveedor:</strong> ${response.proveedor}</p>
-                        <div class="result-stats">
-                            <div class="stat-box">
-                                <div class="stat-label">Total Elementos</div>
-                                <div class="stat-value">${response.estadisticas.total_elementos}</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">Guardados</div>
-                                <div class="stat-value">${response.estadisticas.guardados}</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">Errores</div>
-                                <div class="stat-value ${response.estadisticas.errores > 0 ? 'warning' : ''}">${response.estadisticas.errores}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function showError(message, detalle = null) {
-            const resultDiv = document.getElementById('result-message');
-            resultDiv.className = 'result-message result-error show';
-            resultDiv.innerHTML = `
-                <div class="result-header">
-                    <i class="fas fa-exclamation-circle result-icon error"></i>
-                    <div class="result-content">
-                        <h3>Error al procesar archivo</h3>
-                        <p class="result-detail">${message}</p>
-                        ${detalle ? `<p class="result-detail" style="font-size: 13px; margin-top: 5px;">${detalle}</p>` : ''}
-                    </div>
-                </div>
-            `;
-        }
-
-        async function loadArchivos() {
-            try {
-                const response = await fetch(`${API_BASE}/listar-kmz/`, {
-                    credentials: 'include'
-                });
-
-                if (response.status === 401 || response.status === 403) {
-                    window.location.href = '/cobertura/login/';
-                    return;
                 }
-
-                if (!response.ok) throw new Error('Error al cargar archivos');
-
-                const data = await response.json();
-                displayArchivos(data.archivos);
-
-            } catch (error) {
-                document.getElementById('files-list').innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Error al cargar archivos procesados</p>
-                    </div>
-                `;
             }
+            return cookieValue;
         }
 
-        function displayArchivos(archivos) {
-            const listDiv = document.getElementById('files-list');
+        // --- LÓGICA DE ARCHIVOS ---
+        const dz = document.getElementById('drop-zone');
+        const fi = document.getElementById('file-input');
 
-            if (archivos.length === 0) {
-                listDiv.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>No hay archivos procesados aún</p>
-                    </div>
-                `;
+        dz.addEventListener('click', () => fi.click());
+        dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+        dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+        dz.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dz.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleSelection(e.dataTransfer.files[0]);
+        });
+
+        fi.addEventListener('change', (e) => {
+            if (e.target.files.length) handleSelection(e.target.files[0]);
+        });
+
+        function handleSelection(file) {
+            if (!file.name.toLowerCase().endsWith('.kmz') && !file.name.toLowerCase().endsWith('.kml')) {
+                showAlert('Formato inválido', 'Solo se permiten archivos .kmz o .kml', 'error');
                 return;
             }
+            currentFile = file;
+            document.getElementById('p-name').innerText = file.name;
+            document.getElementById('p-size').innerText = (file.size / 1024).toFixed(2) + ' KB';
+            document.getElementById('file-preview').classList.add('active');
+            document.getElementById('btn-upload').style.display = 'flex';
+            document.getElementById('alert-box').style.display = 'none';
+        }
 
-            listDiv.innerHTML = archivos.slice(0, 10).map(archivo => `
-                <div class="file-item">
-                    <div class="file-item-header">
-                        <div class="file-item-left">
-                            <div class="file-item-icon">
-                                <i class="fas fa-file-archive"></i>
-                            </div>
-                            <div class="file-item-info">
-                                <h4>${archivo.nombre}</h4>
-                                <p>${archivo.proveedor} • ${archivo.total_elementos} elementos</p>
+        function resetFile() {
+            currentFile = null;
+            fi.value = '';
+            document.getElementById('file-preview').classList.remove('active');
+            document.getElementById('btn-upload').style.display = 'none';
+            document.getElementById('prog-sec').classList.remove('active');
+        }
+
+        // --- PETICIÓN AJAX CON PROGRESO ---
+        function startUpload() {
+            if (!currentFile) return;
+
+            const fd = new FormData();
+            fd.append('archivo', currentFile);
+
+            const xhr = new XMLHttpRequest();
+            const fill = document.getElementById('prog-fill');
+            const perc = document.getElementById('prog-perc');
+            const statusText = document.getElementById('prog-status');
+
+            document.getElementById('prog-sec').classList.add('active');
+            document.getElementById('btn-upload').disabled = true;
+
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const p = Math.round((e.loaded / e.total) * 100);
+                    fill.style.width = p + '%';
+                    perc.innerText = p + '%';
+                    statusText.innerText = p < 100 ? "Subiendo archivo..." : "Analizando datos espaciales...";
+                }
+            };
+
+            xhr.onload = () => {
+                let res;
+                try { res = JSON.parse(xhr.responseText); } catch(e) { res = { error: "Error de servidor" }; }
+
+                if (xhr.status === 201 || xhr.status === 200) {
+                    showAlert('¡Procesado!', res.mensaje, 'success', res.estadisticas);
+                    loadHistory();
+                    setTimeout(resetFile, 3000);
+                } else {
+                    showAlert('Fallo en el proceso', res.error || "Error desconocido", 'error');
+                    document.getElementById('btn-upload').disabled = false;
+                }
+            };
+
+            xhr.onerror = () => showAlert('Error de red', 'No se pudo conectar con el servidor', 'error');
+
+            xhr.open('POST', '/cobertura/api/upload-kmz/');
+            // TOKEN CSRF INDISPENSABLE
+            xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
+            xhr.withCredentials = true;
+            xhr.send(fd);
+        }
+
+        function showAlert(title, text, type, stats = null) {
+            const box = document.getElementById('alert-box');
+            const icon = document.getElementById('alert-icon');
+            box.style.display = 'block';
+            box.className = `alert alert-${type}`;
+            
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-text').innerText = text;
+            icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
+
+            const sBox = document.getElementById('alert-stats');
+            if (stats) {
+                sBox.style.display = 'grid';
+                document.getElementById('s-total').innerText = stats.total_elementos;
+                document.getElementById('s-saved').innerText = stats.guardados;
+            } else {
+                sBox.style.display = 'none';
+            }
+        }
+
+        async function loadHistory() {
+            const list = document.getElementById('hist-list');
+            try {
+                const r = await fetch('/cobertura/api/listar-kmz/');
+                const data = await r.json();
+                
+                if (data.archivos && data.archivos.length) {
+                    list.innerHTML = data.archivos.slice(0, 8).map(a => `
+                        <div class="history-item">
+                            <div class="item-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div class="item-content">
+                                <h4>${a.nombre}</h4>
+                                <p>${a.proveedor} • <b>${a.total_elementos}</b> elem.</p>
                             </div>
                         </div>
-                        <div class="file-item-date">
-                            <p>${formatDate(archivo.fecha_subida)}</p>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p style="text-align:center; font-size:0.8rem; padding:2rem; color:#94a3b8;">Sin registros.</p>';
+                }
+            } catch(e) {
+                list.innerHTML = '<p style="text-align:center; color:var(--error); font-size:0.75rem;">Error al cargar historial</p>';
+            }
         }
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('es-CO', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        function logout() {
-            window.location.href = '/cobertura/logout/';
-        }
-
-        loadArchivos();
+        // Inicializar
+        loadHistory();
     </script>
 </body>
 </html>
