@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Cobertura ISP</title>
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --line: #d9e2f2;
+            --text: #0f172a;
+            --muted: #475569;
+            --ok: #166534;
+            --ok-bg: #dcfce7;
+            --ko: #991b1b;
+            --ko-bg: #fee2e2;
+            --btn: #0b3b8c;
+            --btn-hover: #082c69;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at 20% 0%, #dbeafe 0%, var(--bg) 40%, #eef2ff 100%);
+            color: var(--text);
+        }
+
+        .wrap {
+            max-width: 1060px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            padding: 1rem;
+        }
+
+        h1 {
+            margin: 0 0 1rem;
+            font-size: 1.5rem;
+        }
+
+        .row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 260px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 0.7rem 0.8rem;
+            font-size: 1rem;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 0.72rem 1rem;
+            background: var(--btn);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover { background: var(--btn-hover); }
+
+        #estado {
+            margin: 1rem 0;
+            padding: 0.75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            display: none;
+        }
+
+        #estado.ok { color: var(--ok); background: var(--ok-bg); display: block; }
+        #estado.ko { color: var(--ko); background: var(--ko-bg); display: block; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.6rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+        th { color: var(--muted); font-weight: 700; }
+
+        .muted { color: var(--muted); }
+
+        @media (max-width: 700px) {
+            h1 { font-size: 1.2rem; }
+            table { font-size: 0.88rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card">
+            <h1>Consulta de Cobertura por Direccion</h1>
+            <div class="row">
+                <input id="direccion" type="text" placeholder="Ej: Calle 10 Medellin" />
+                <button id="buscarBtn" type="button">Buscar</button>
+            </div>
+            <p class="muted">Solo usuarios autenticados pueden consultar.</p>
+
+            <div id="estado"></div>
+
+            <div style="overflow:auto;">
+                <table id="tablaResultados">
+                    <thead>
+                        <tr>
+                            <th>ISP</th>
+                            <th>Distancia (m)</th>
+                            <th>Tipo de geometria</th>
+                            <th>Archivo</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const btn = document.getElementById("buscarBtn");
+        const direccionInput = document.getElementById("direccion");
+        const estado = document.getElementById("estado");
+        const tbody = document.querySelector("#tablaResultados tbody");
+
+        function limpiarEstado() {
+            estado.className = "";
+            estado.textContent = "";
+        }
+
+        function mostrarEstado(mensaje, ok) {
+            estado.className = ok ? "ok" : "ko";
+            estado.textContent = mensaje;
+        }
+
+        function pintarFilas(elementos) {
+            tbody.innerHTML = "";
+            for (const item of elementos) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${item.proveedor || "-"}</td>
+                    <td>${item.distancia_metros ?? "-"}</td>
+                    <td>${item.tipo_geometria || "-"}</td>
+                    <td>${item.archivo_origen || "-"}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        async function buscar() {
+            const direccion = direccionInput.value.trim();
+            if (!direccion) {
+                mostrarEstado("Debes ingresar una direccion", false);
+                return;
+            }
+
+            limpiarEstado();
+            tbody.innerHTML = "";
+
+            try {
+                const resp = await fetch(`/api/buscar-cobertura/?direccion=${encodeURIComponent(direccion)}`, {
+                    method: "GET",
+                    credentials: "same-origin"
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    mostrarEstado(data.error || "No fue posible consultar", false);
+                    return;
+                }
+
+                if (data.hay_cobertura) {
+                    mostrarEstado(`Hay cobertura. ISPs disponibles: ${data.isps_disponibles.join(", ")}`, true);
+                } else {
+                    mostrarEstado("No hay cobertura para la direccion consultada", false);
+                }
+
+                pintarFilas(data.elementos || []);
+            } catch (err) {
+                mostrarEstado("Error de red al consultar cobertura", false);
+            }
+        }
+
+        btn.addEventListener("click", buscar);
+        direccionInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") buscar();
+        });
+    </script>
+</body>
+</html>
