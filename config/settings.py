@@ -1,7 +1,7 @@
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
-
+import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ==============================================================================
@@ -19,13 +19,17 @@ APPEND_SLASH = True
 # ==============================================================================
 
 INSTALLED_APPS = [
+    # Local
+    'api',
+    
+    # Django
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.gis',
+     'django.contrib.gis',
     
     # Django OTP (2FA)
     'django_otp',
@@ -36,8 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 
-    # Local
-    'api',
+    
 ]
 
 # ==============================================================================
@@ -53,8 +56,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_otp.middleware.OTPMiddleware',
-    'api.middleware.Enforce2FAMiddleware',
+     #'django_otp.middleware.OTPMiddleware',
+     #'api.middleware.Enforce2FAMiddleware',
 ]
 
 # ==============================================================================
@@ -85,18 +88,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # DATABASE
 # ==============================================================================
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': config('DATABASE_NAME'),
-        'USER': config('DATABASE_USER'),
-        'PASSWORD': config('DATABASE_PASSWORD'),
-        'HOST': config('DATABASE_HOST'),
-        'PORT': config('DATABASE_PORT'),
-        'CONN_MAX_AGE': 600,
+if os.getenv('DATABASE_ENGINE') == 'sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Cambiado aquí
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
-
 # ==============================================================================
 # AUTH & PASSWORD VALIDATION
 # ==============================================================================
@@ -143,9 +141,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SESSION SETTINGS
 # ==============================================================================
 
-SESSION_COOKIE_SECURE = False  # False para HTTP, True solo si usas HTTPS
-SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False# False para HTTP, True solo si usas HTTPS
+SESSION_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_AGE = 3600  # 1 hora
 SESSION_SAVE_EVERY_REQUEST = True  # Importante para 2FA
 SESSION_COOKIE_NAME = 'cobertura_sessionid'
@@ -177,8 +177,8 @@ X_FRAME_OPTIONS = 'DENY'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'api.authentication.CsrfExemptSessionAuthentication',  # Sesión sin CSRF
-        'rest_framework_simplejwt.authentication.JWTAuthentication',  # JWT como fallback
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -231,7 +231,7 @@ LOGGING = {
         'file': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': '/opt/cobertura_isp/logs/security.log',
+            'filename': BASE_DIR / 'logs' / 'security.log',
             'formatter': 'verbose',
         },
     },
@@ -243,3 +243,18 @@ LOGGING = {
         },
     },
 }
+
+# ==============================================================================
+# GEODJANGO CONFIGURATION (WINDOWS)
+# ==============================================================================
+# settings.py (al principio, justo después de los imports de Path)
+import os
+import sys
+
+OSGEO4W_ROOT = r'C:\OSGeo4W'
+# Insertamos la ruta al inicio del PATH ambiental
+os.environ['PATH'] = os.path.join(OSGEO4W_ROOT, 'bin') + os.pathsep + os.environ['PATH']
+
+# Configuraciones explícitas
+GDAL_LIBRARY_PATH = r'C:\OSGeo4W\bin\gdal312.dll'
+GEOS_LIBRARY_PATH = r'C:\OSGeo4W\bin\geos_c.dll'

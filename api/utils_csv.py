@@ -146,45 +146,43 @@ class CSVProcessor:
     @staticmethod
     def generate_output_csv(resultados: List[Dict]) -> str:
         """
-        Genera CSV de salida con resultados en formato organizado
+        Genera CSV de salida mapeando los datos del diccionario de la vista
+        a un formato legible.
         """
         output = io.StringIO()
         
         if not resultados:
             return ''
         
-        # Headers más claros
-        fieldnames = [
-            'Entrada Original',
-            'Coordenadas Consultadas',
-            'Tiene Cobertura',
-            'ISPs Disponibles',
-            'Cantidad de ISPs',
-            'Distancia Minima (metros)'
-        ]
+        # Headers para el archivo final
+        headers_map = {
+            'entrada_original': 'Entrada Original',
+            'coordenadas_consultadas': 'Coordenadas Consultadas',
+            'tiene_cobertura': 'Tiene Cobertura',
+            'isps_disponibles': 'ISPs Disponibles',
+            'total_isps': 'Cantidad de ISPs',
+            'distancia_minima_metros': 'Distancia Minima (metros)'
+        }
         
-        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer = csv.DictWriter(output, fieldnames=headers_map.values())
         writer.writeheader()
         
-        for resultado in resultados:
-            # Formatear ISPs
-            isps = resultado.get('isps_disponibles', [])
+        for res in resultados:
+            # Formatear la lista de ISPs
+            isps = res.get('isps_disponibles', [])
             isps_str = ' | '.join(isps) if isps else 'Sin cobertura'
             
             # Formatear distancia
-            distancia = resultado.get('distancia_minima_metros', 'N/A')
-            if isinstance(distancia, (int, float)):
-                distancia_str = f"{distancia:.2f}"
-            else:
-                distancia_str = str(distancia)
+            dist = res.get('distancia_minima_metros', 'N/A')
+            dist_str = f"{dist:.2f}" if isinstance(dist, (int, float)) else str(dist)
             
             writer.writerow({
-                'Entrada Original': resultado.get('entrada_original', ''),
-                'Coordenadas Consultadas': resultado.get('coordenadas_consultadas', ''),
-                'Tiene Cobertura': 'Si' if resultado.get('tiene_cobertura') else 'No',
+                'Entrada Original': res.get('entrada_original', ''),
+                'Coordenadas Consultadas': res.get('coordenadas_consultadas', ''),
+                'Tiene Cobertura': 'Si' if res.get('tiene_cobertura') else 'No',
                 'ISPs Disponibles': isps_str,
-                'Cantidad de ISPs': resultado.get('total_isps', 0),
-                'Distancia Minima (metros)': distancia_str
+                'Cantidad de ISPs': res.get('total_isps', 0),
+                'Distancia Minima (metros)': dist_str
             })
         
         return output.getvalue()

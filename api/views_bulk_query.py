@@ -217,25 +217,21 @@ def geocodificar_direccion(direccion):
 
 def consultar_cobertura_punto(latitud, longitud, radio_metros=1000):
     """
-    Consulta cobertura en un punto específico
+    Consulta cobertura en un punto específico (Versión compatible con SpatiaLite/SQLite)
     """
-    # Crear punto de consulta
-    punto = Point(longitud, latitud, srid=4326)
-    
-    # Buscar coberturas dentro del radio
+    # Usamos ST_Distance con ST_Transform a 3857 para medir en metros
     coberturas_cercanas = CoberturaISP.objects.extra(
         where=[
-            "ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s)"
+            "ST_Distance(ST_Transform(geom, 3857), ST_Transform(ST_SetSRID(ST_MakePoint(%s, %s), 4326), 3857)) <= %s"
         ],
         params=[longitud, latitud, radio_metros]
     ).extra(
         select={
-            'distancia': "ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography)"
+            'distancia': "ST_Distance(ST_Transform(geom, 3857), ST_Transform(ST_SetSRID(ST_MakePoint(%s, %s), 4326), 3857))"
         },
         select_params=[longitud, latitud]
     ).order_by('distancia')
     
-    # Obtener ISPs únicos
     isps_disponibles = list(
         coberturas_cercanas.values_list('proveedor', flat=True)
         .distinct()
@@ -243,7 +239,6 @@ def consultar_cobertura_punto(latitud, longitud, radio_metros=1000):
         .exclude(proveedor='')
     )
     
-    # Distancia mínima
     distancia_minima = None
     if coberturas_cercanas.exists():
         distancia_minima = round(coberturas_cercanas.first().distancia, 2)
@@ -254,7 +249,6 @@ def consultar_cobertura_punto(latitud, longitud, radio_metros=1000):
         'total_isps': len(isps_disponibles),
         'distancia_minima_metros': distancia_minima if distancia_minima is not None else 'N/A'
     }
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
