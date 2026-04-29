@@ -157,22 +157,20 @@ class KMZProcessor:
     
     @staticmethod
     def _parse_point(coords_text):
-        """Parsear coordenadas de un Point (Maneja lon,lat,alt)"""
+        """Parsear coordenadas de un Point"""
         try:
-            # Limpiar texto y tomar solo los primeros dos valores
-            parts = coords_text.strip().split(',')
-            lon, lat = float(parts[0]), float(parts[1])
+            coords = coords_text.strip().split(',')
+            lon, lat = float(coords[0]), float(coords[1])
             return Point(lon, lat, srid=4326)
         except Exception as e:
             logger.warning(f'Error parseando Point: {e}')
             return None
-
+    
     @staticmethod
     def _parse_linestring(coords_text):
-        """Parsear coordenadas de un LineString (Limpia altitudes)"""
+        """Parsear coordenadas de un LineString"""
         try:
             points = []
-            # Los KML separan puntos por espacios o saltos de línea
             for coord in coords_text.strip().split():
                 parts = coord.split(',')
                 if len(parts) >= 2:
@@ -184,11 +182,12 @@ class KMZProcessor:
         except Exception as e:
             logger.warning(f'Error parseando LineString: {e}')
         return None
-
+    
     @staticmethod
     def _parse_polygon(polygon_elem, ns):
-        """Parsear coordenadas de un Polygon (Asegura que sea cerrado)"""
+        """Parsear coordenadas de un Polygon"""
         try:
+            # Obtener outer boundary
             outer_coords = polygon_elem.find('.//kml:outerBoundaryIs/kml:LinearRing/kml:coordinates', ns)
             if outer_coords is None or not outer_coords.text:
                 return None
@@ -200,15 +199,12 @@ class KMZProcessor:
                     lon, lat = float(parts[0]), float(parts[1])
                     outer_points.append((lon, lat))
             
-            if len(outer_points) >= 3:
-                # SpatiaLite requiere que el primer y último punto sean iguales
-                if outer_points[0] != outer_points[-1]:
-                    outer_points.append(outer_points[0])
+            if len(outer_points) >= 4:  # Polygon necesita al menos 4 puntos (cerrado)
                 return Polygon(outer_points, srid=4326)
         except Exception as e:
             logger.warning(f'Error parseando Polygon: {e}')
         return None
-      
+    
     @staticmethod
     def _parse_multigeometry(multigeom_elem, ns):
         """Parsear MultiGeometry"""

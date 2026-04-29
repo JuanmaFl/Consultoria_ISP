@@ -3,208 +3,1793 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Cobertura ISP</title>
+    <title>Dashboard - Sistema de Cobertura ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --bg: #f5f7fb;
-            --card: #ffffff;
-            --line: #d9e2f2;
-            --text: #0f172a;
-            --muted: #475569;
-            --ok: #166534;
-            --ok-bg: #dcfce7;
-            --ko: #991b1b;
-            --ko-bg: #fee2e2;
-            --btn: #0b3b8c;
-            --btn-hover: #082c69;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        * { box-sizing: border-box; }
 
         body {
-            margin: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: radial-gradient(circle at 20% 0%, #dbeafe 0%, var(--bg) 40%, #eef2ff 100%);
-            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .wrap {
-            max-width: 1060px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .card {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-            padding: 1rem;
-        }
-
-        h1 {
-            margin: 0 0 1rem;
-            font-size: 1.5rem;
-        }
-
-        .row {
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 40px;
             display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
-        input[type="text"] {
-            flex: 1;
-            min-width: 260px;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            padding: 0.7rem 0.8rem;
-            font-size: 1rem;
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        button {
+        .header-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
             border: none;
             border-radius: 10px;
-            padding: 0.72rem 1rem;
-            background: var(--btn);
-            color: white;
+            font-size: 14px;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1600px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card.clickable {
             cursor: pointer;
         }
 
-        button:hover { background: var(--btn-hover); }
+        .stat-card.clickable:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.25);
+        }
 
-        #estado {
-            margin: 1rem 0;
-            padding: 0.75rem;
-            border-radius: 10px;
+        .stat-card.clickable::after {
+            content: 'Click para ver lista';
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 11px;
+            color: #667eea;
             font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stat-card.clickable:hover::after {
+            opacity: 1;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #667eea;
+        }
+
+        .stat-trend {
+            padding: 6px 12px;
+            background: #e8f5e9;
+            color: #4caf50;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .chart-title {
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-title i {
+            color: #667eea;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Report Section */
+        .report-section {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .report-header {
+            margin-bottom: 30px;
+        }
+
+        .report-title {
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .report-title i {
+            color: #667eea;
+        }
+
+        .report-subtitle {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        .report-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .report-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .report-option:hover {
+            border-color: #667eea;
+            background: #667eea10;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .report-option-icon {
+            font-size: 40px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .report-option-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .report-option-desc {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .btn-generate {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 35px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* KPI Advanced Section */
+        .kpi-advanced {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.06);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-card-icon {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+
+        .kpi-card-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .kpi-card-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Provider List */
+        .provider-list {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .provider-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .provider-item:hover {
+            background: #667eea10;
+            border-color: #667eea;
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .provider-name {
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .provider-name i {
+            color: #667eea;
+        }
+
+        .provider-count {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Modal Overlays */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: calc(100% - 60px);
+            white-space: nowrap;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-tabs {
+            display: flex;
+            background: #f8f9fa;
+            padding: 0 40px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .modal-tab {
+            padding: 20px 30px;
+            background: none;
+            border: none;
+            color: #7f8c8d;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .modal-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .modal-tab:hover {
+            color: #667eea;
+        }
+
+        .modal-body {
+            padding: 40px;
+        }
+
+        .tab-content {
             display: none;
         }
 
-        #estado.ok { color: var(--ok); background: var(--ok-bg); display: block; }
-        #estado.ko { color: var(--ko); background: var(--ko-bg); display: block; }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
 
-        table {
+        /* Resumen Tab */
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .resumen-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .resumen-card-icon {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .resumen-card-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.2;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .resumen-card-label {
+            font-size: 10px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Lista de archivos KMZ */
+        .kmz-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .kmz-list-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .kmz-list-item:hover {
+            border-color: #667eea;
+            background: white;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .kmz-list-item-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .kmz-list-item-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .kmz-list-item-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #2c3e50;
+            flex: 1;
+        }
+
+        .kmz-list-item-provider {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #667eea20;
+            color: #667eea;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* Filtros para KMZ */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .filter-btn .count {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .filter-btn.active .count {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Elementos Table */
+        .elementos-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 0.5rem;
-            font-size: 0.95rem;
+            margin-top: 20px;
         }
 
-        th, td {
+        .elementos-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .elementos-table th {
+            padding: 15px;
             text-align: left;
-            padding: 0.6rem;
-            border-bottom: 1px solid var(--line);
+            font-weight: 600;
+            font-size: 14px;
         }
 
-        th { color: var(--muted); font-weight: 700; }
+        .elementos-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
 
-        .muted { color: var(--muted); }
+        .elementos-table tbody tr:hover {
+            background: #f8f9fa;
+        }
 
-        @media (max-width: 700px) {
-            h1 { font-size: 1.2rem; }
-            table { font-size: 0.88rem; }
+        .elementos-table td {
+            padding: 15px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        /* Zonas Tab */
+        .zonas-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .zonas-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .zonas-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .zonas-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .zonas-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .zonas-table td {
+            padding: 15px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-orange {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .badge-blue {
+            background: #eff6ff;
+            color: #1e3a8a;
+        }
+
+        .badge-yellow {
+            background: #fefce8;
+            color: #713f12;
+        }
+
+        /* Mapa Tab */
+        #map-isp, #map-kmz {
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 0 20px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .header { padding: 15px 20px; flex-direction: column; gap: 15px; }
+            .header h1 { font-size: 20px; }
+            .nav-buttons { flex-wrap: wrap; }
+            .report-options { grid-template-columns: 1fr; }
+            .kpi-advanced { grid-template-columns: repeat(2, 1fr); }
+            .modal-content { width: 95%; }
+            .modal-tabs { flex-wrap: wrap; }
+            .zonas-table { font-size: 12px; }
+            .zonas-table th, .zonas-table td { padding: 10px; }
+            .elementos-table { font-size: 12px; }
+            .elementos-table th, .elementos-table td { padding: 10px; }
+            .filter-bar { flex-direction: column; }
+            .kmz-list-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}"></script>
 </head>
 <body>
-    <div class="wrap">
-        <div class="card">
-            <h1>Consulta de Cobertura por Direccion</h1>
-            <div class="row">
-                <input id="direccion" type="text" placeholder="Ej: Calle 10 Medellin" />
-                <button id="buscarBtn" type="button">Buscar</button>
+    <div class="header">
+        <h1>
+            <div class="header-icon"><i class="fas fa-chart-line"></i></div>
+            Dashboard de Estadísticas
+        </h1>
+        <div class="nav-buttons">
+            <a href="/cobertura/mapa/" class="btn btn-primary"><i class="fas fa-map-marked-alt"></i> Mapa</a>
+            <a href="/cobertura/upload/" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> Upload</a>
+            <a href="/cobertura/bulk-query/" class="btn btn-primary"><i class="fas fa-table"></i> CSV</a>
+            <a href="/cobertura/2fa/status/" class="btn btn-primary"><i class="fas fa-shield-alt"></i> Seguridad 2FA</a>
+            <button class="btn btn-secondary" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-network-wired"></i></div>
+                    <div class="stat-trend"><i class="fas fa-arrow-up"></i> Activo</div>
+                </div>
+                <div class="stat-value" id="total-registros">-</div>
+                <div class="stat-label">Puntos de Cobertura</div>
             </div>
-            <p class="muted">Solo usuarios autenticados pueden consultar.</p>
 
-            <div id="estado"></div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-broadcast-tower"></i></div>
+                    <div class="stat-trend"><i class="fas fa-check"></i> 100%</div>
+                </div>
+                <div class="stat-value" id="total-proveedores">-</div>
+                <div class="stat-label">Proveedores ISP</div>
+            </div>
 
-            <div style="overflow:auto;">
-                <table id="tablaResultados">
-                    <thead>
-                        <tr>
-                            <th>ISP</th>
-                            <th>Distancia (m)</th>
-                            <th>Tipo de geometria</th>
-                            <th>Archivo</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div class="stat-card clickable" onclick="abrirListaKMZ()">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-folder-open"></i></div>
+                    <div class="stat-trend"><i class="fas fa-check"></i> Completo</div>
+                </div>
+                <div class="stat-value" id="total-kmz">-</div>
+                <div class="stat-label">Archivos KMZ</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-map-pin"></i></div>
+                    <div class="stat-trend"><i class="fas fa-flag"></i> Colombia</div>
+                </div>
+                <div class="stat-value" id="total-zonas">-</div>
+                <div class="stat-label">Zonas Geográficas</div>
+            </div>
+        </div>
+
+        <!-- KPIs Avanzados -->
+        <div class="kpi-advanced">
+            <div class="kpi-card">
+                <div class="kpi-card-icon"><i class="fas fa-route"></i></div>
+                <div class="kpi-card-value" id="kpi-linestring">-</div>
+                <div class="kpi-card-label">Rutas de Fibra</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-card-icon"><i class="fas fa-map-marked"></i></div>
+                <div class="kpi-card-value" id="kpi-multipoint">-</div>
+                <div class="kpi-card-label">Puntos de Conexión</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-card-icon"><i class="fas fa-draw-polygon"></i></div>
+                <div class="kpi-card-value" id="kpi-polygon">-</div>
+                <div class="kpi-card-label">Áreas de Cobertura</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-card-icon"><i class="fas fa-city"></i></div>
+                <div class="kpi-card-value" id="kpi-municipios">-</div>
+                <div class="kpi-card-label">Municipios</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-card-icon"><i class="fas fa-percentage"></i></div>
+                <div class="kpi-card-value" id="kpi-top-isp">-</div>
+                <div class="kpi-card-label">ISP Líder</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-card-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="kpi-card-value" id="kpi-density">-</div>
+                <div class="kpi-card-label">Densidad Alta</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-chart-pie"></i> Distribución por Proveedor</div>
+                <div class="chart-container">
+                    <canvas id="providerChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-shapes"></i> Tipos de Geometría</div>
+                <div class="chart-container">
+                    <canvas id="geometryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Section -->
+        <div class="report-section">
+            <div class="report-header">
+                <div class="report-title">
+                    <i class="fas fa-file-pdf"></i>
+                    Generador de Reportes Ejecutivos
+                </div>
+                <div class="report-subtitle">
+                    Genera reportes profesionales en PDF listos para presentar a stakeholders
+                </div>
+            </div>
+
+            <div class="report-options">
+                <div class="report-option" onclick="selectReport('completo')">
+                    <div class="report-option-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="report-option-title">Reporte Completo</div>
+                    <div class="report-option-desc">Análisis integral con todas las métricas y estadísticas</div>
+                </div>
+
+                <div class="report-option" onclick="selectReport('comparativa')">
+                    <div class="report-option-icon"><i class="fas fa-balance-scale"></i></div>
+                    <div class="report-option-title">Comparativa ISPs</div>
+                    <div class="report-option-desc">Análisis comparativo entre proveedores de servicio</div>
+                </div>
+
+                <div class="report-option" onclick="selectReport('zona')">
+                    <div class="report-option-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <div class="report-option-title">Análisis por Zona</div>
+                    <div class="report-option-desc">Cobertura detallada por región geográfica</div>
+                </div>
+            </div>
+
+            <button class="btn-generate" onclick="generarReporte()" id="btn-generar">
+                <i class="fas fa-download"></i>
+                GENERAR REPORTE PDF
+            </button>
+
+            <div class="loading" id="loading-report">
+                <i class="fas fa-spinner fa-spin"></i> Generando reporte...
+            </div>
+        </div>
+
+        <!-- Provider List -->
+        <div class="provider-list">
+            <div class="chart-title"><i class="fas fa-signal"></i> Detalle de Proveedores</div>
+            <div id="provider-list-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal Lista de Archivos KMZ -->
+    <div class="modal-overlay" id="modal-lista-kmz">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-folder-open"></i> Seleccionar Archivo KMZ</h2>
+                <button class="modal-close" onclick="cerrarListaKMZ()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: #7f8c8d;">Selecciona un archivo KMZ para ver sus detalles de cobertura:</p>
+                <div class="kmz-list-grid" id="kmz-list-grid">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ISP -->
+    <div class="modal-overlay" id="modal-isp">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-broadcast-tower"></i> <span id="modal-isp-nombre">-</span></h2>
+                <button class="modal-close" onclick="cerrarModalISP()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="modal-tabs">
+                <button class="modal-tab active" onclick="switchModalTab('isp', 'resumen')">
+                    <i class="fas fa-chart-bar"></i> Resumen
+                </button>
+                <button class="modal-tab" onclick="switchModalTab('isp', 'zonas')">
+                    <i class="fas fa-map-marked-alt"></i> Por Zona
+                </button>
+                <button class="modal-tab" onclick="switchModalTab('isp', 'mapa')">
+                    <i class="fas fa-globe"></i> Mapa
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Tab: Resumen -->
+                <div class="tab-content active" id="isp-tab-resumen">
+                    <div class="resumen-grid">
+                        <div class="resumen-card">
+                            <div class="resumen-card-icon"><i class="fas fa-network-wired"></i></div>
+                            <div class="resumen-card-value" id="isp-resumen-total">-</div>
+                            <div class="resumen-card-label">Total Registros</div>
+                        </div>
+                        <div class="resumen-card">
+                            <div class="resumen-card-icon"><i class="fas fa-map-marked"></i></div>
+                            <div class="resumen-card-value" id="isp-resumen-nodos">-</div>
+                            <div class="resumen-card-label">Nodos</div>
+                        </div>
+                        <div class="resumen-card">
+                            <div class="resumen-card-icon"><i class="fas fa-route"></i></div>
+                            <div class="resumen-card-value" id="isp-resumen-rutas">-</div>
+                            <div class="resumen-card-label">Rutas</div>
+                        </div>
+                        <div class="resumen-card">
+                            <div class="resumen-card-icon"><i class="fas fa-draw-polygon"></i></div>
+                            <div class="resumen-card-value" id="isp-resumen-areas">-</div>
+                            <div class="resumen-card-label">Áreas</div>
+                        </div>
+                        <div class="resumen-card">
+                            <div class="resumen-card-icon"><i class="fas fa-map-pin"></i></div>
+                            <div class="resumen-card-value" id="isp-resumen-zonas">-</div>
+                            <div class="resumen-card-label">Zonas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Por Zona -->
+                <div class="tab-content" id="isp-tab-zonas">
+                    <table class="zonas-table">
+                        <thead>
+                            <tr>
+                                <th>Zona</th>
+                                <th>Nodos</th>
+                                <th>Rutas</th>
+                                <th>Áreas</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="isp-zonas-tbody">
+                            <!-- Se llena dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tab: Mapa -->
+                <div class="tab-content" id="isp-tab-mapa">
+                    <div id="map-isp"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal KMZ -->
+    <div class="modal-overlay" id="modal-kmz">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-folder-open"></i> <span id="modal-kmz-nombre">-</span></h2>
+                <button class="modal-close" onclick="cerrarModalKMZ()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="modal-tabs">
+                <button class="modal-tab active" onclick="switchModalTab('kmz', 'resumen')">
+                    <i class="fas fa-chart-bar"></i> Resumen
+                </button>
+                <button class="modal-tab" onclick="switchModalTab('kmz', 'elementos')">
+                    <i class="fas fa-list"></i> Elementos
+                </button>
+                <button class="modal-tab" onclick="switchModalTab('kmz', 'mapa')">
+                    <i class="fas fa-globe"></i> Mapa
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Tab: Resumen -->
+                <div class="tab-content active" id="kmz-tab-resumen">
+                    <div class="resumen-grid">
+                        <div class="resumen-card">
+                            <div class="resumen-card-icon"><i class="fas fa-network-wired"></i></div>
+                            <div class="resumen-card-value" id="kmz-resumen-total">-</div>
+                            <div class="resumen-card-label">Total Registros</div>
+                        </div>
+                        <div class="resumen-card">
+                            <div class="resumen-card-icon"><i class="fas fa-map-marked"></i></div>
+                            <div class="resumen-card-value" id="kmz-resumen-nodos">-</div>
+                            <div class="resumen-card-label">Nodos</div>
+                        </div>
+                        <div class="resumen-card">
+                            <div class="resumen-card-icon"><i class="fas fa-route"></i></div>
+                            <div class="resumen-card-value" id="kmz-resumen-rutas">-</div>
+                            <div class="resumen-card-label">Rutas</div>
+                        </div>
+                        <div class="resumen-card">
+                            <div class="resumen-card-icon"><i class="fas fa-draw-polygon"></i></div>
+                            <div class="resumen-card-value" id="kmz-resumen-areas">-</div>
+                            <div class="resumen-card-label">Áreas</div>
+                        </div>
+                        <div class="resumen-card">
+                            <div class="resumen-card-icon"><i class="fas fa-broadcast-tower"></i></div>
+                            <div class="resumen-card-value" id="kmz-resumen-proveedor">-</div>
+                            <div class="resumen-card-label">Proveedor</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Elementos -->
+                <div class="tab-content" id="kmz-tab-elementos">
+                    <div class="filter-bar">
+                        <button class="filter-btn active" onclick="filtrarKMZ('todos')" id="filter-todos">
+                            <i class="fas fa-layer-group"></i>
+                            Todos
+                            <span class="count" id="count-todos">0</span>
+                        </button>
+                        <button class="filter-btn" onclick="filtrarKMZ('nodo')" id="filter-nodo">
+                            <i class="fas fa-map-marked"></i>
+                            Nodos
+                            <span class="count" id="count-nodo">0</span>
+                        </button>
+                        <button class="filter-btn" onclick="filtrarKMZ('ruta')" id="filter-ruta">
+                            <i class="fas fa-route"></i>
+                            Rutas
+                            <span class="count" id="count-ruta">0</span>
+                        </button>
+                        <button class="filter-btn" onclick="filtrarKMZ('area')" id="filter-area">
+                            <i class="fas fa-draw-polygon"></i>
+                            Áreas
+                            <span class="count" id="count-area">0</span>
+                        </button>
+                    </div>
+
+                    <table class="elementos-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Nombre</th>
+                                <th>Geometría</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kmz-elementos-tbody">
+                            <!-- Se llena dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tab: Mapa -->
+                <div class="tab-content" id="kmz-tab-mapa">
+                    <div id="map-kmz"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const btn = document.getElementById("buscarBtn");
-        const direccionInput = document.getElementById("direccion");
-        const estado = document.getElementById("estado");
-        const tbody = document.querySelector("#tablaResultados tbody");
+        let dashboardData;
+        let selectedReportType = 'completo';
+        let ispModalData = null;
+        let ispMap = null;
+        let kmzModalData = null;
+        let kmzMap = null;
+        let kmzFiltroActual = 'todos';
+        let listaKMZData = null;
 
-        function limpiarEstado() {
-            estado.className = "";
-            estado.textContent = "";
-        }
-
-        function mostrarEstado(mensaje, ok) {
-            estado.className = ok ? "ok" : "ko";
-            estado.textContent = mensaje;
-        }
-
-        function pintarFilas(elementos) {
-            tbody.innerHTML = "";
-            for (const item of elementos) {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${item.proveedor || "-"}</td>
-                    <td>${item.distancia_metros ?? "-"}</td>
-                    <td>${item.tipo_geometria || "-"}</td>
-                    <td>${item.archivo_origen || "-"}</td>
-                `;
-                tbody.appendChild(tr);
-            }
-        }
-
-        async function buscar() {
-            const direccion = direccionInput.value.trim();
-            if (!direccion) {
-                mostrarEstado("Debes ingresar una direccion", false);
-                return;
-            }
-
-            limpiarEstado();
-            tbody.innerHTML = "";
-
+        async function loadDashboardData() {
             try {
-                const resp = await fetch(`/api/buscar-cobertura/?direccion=${encodeURIComponent(direccion)}`, {
-                    method: "GET",
-                    credentials: "same-origin"
+                const response = await fetch('/cobertura/api/dashboard/', {
+                    credentials: 'include'
                 });
 
-                const data = await resp.json();
-
-                if (!resp.ok) {
-                    mostrarEstado(data.error || "No fue posible consultar", false);
-                    return;
+                if (response.ok) {
+                    dashboardData = await response.json();
+                    updateStats();
+                    updateKPIs();
+                    createCharts();
+                    updateProviderList();
+                } else if (response.status === 401 || response.status === 403) {
+                    window.location.href = '/cobertura/login/';
                 }
-
-                if (data.hay_cobertura) {
-                    mostrarEstado(`Hay cobertura. ISPs disponibles: ${data.isps_disponibles.join(", ")}`, true);
-                } else {
-                    mostrarEstado("No hay cobertura para la direccion consultada", false);
-                }
-
-                pintarFilas(data.elementos || []);
-            } catch (err) {
-                mostrarEstado("Error de red al consultar cobertura", false);
+            } catch (error) {
+                console.error('Error:', error);
             }
         }
 
-        btn.addEventListener("click", buscar);
-        direccionInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") buscar();
+        function updateStats() {
+            document.getElementById('total-registros').textContent = dashboardData.resumen.total_registros.toLocaleString();
+            document.getElementById('total-proveedores').textContent = dashboardData.resumen.total_proveedores;
+            document.getElementById('total-kmz').textContent = dashboardData.resumen.total_archivos_kmz;
+            document.getElementById('total-zonas').textContent = dashboardData.resumen.total_zonas;
+        }
+
+        function updateKPIs() {
+            const tiposMap = {};
+            dashboardData.por_tipo_geometria.forEach(t => {
+                if (t.tipo.includes('Líneas')) tiposMap.linestring = t.cantidad;
+                if (t.tipo.includes('Puntos')) tiposMap.multipoint = t.cantidad;
+                if (t.tipo.includes('Áreas')) tiposMap.polygon = t.cantidad;
+            });
+
+            document.getElementById('kpi-linestring').textContent = (tiposMap.linestring || 0).toLocaleString();
+            document.getElementById('kpi-multipoint').textContent = (tiposMap.multipoint || 0).toLocaleString();
+            document.getElementById('kpi-polygon').textContent = (tiposMap.polygon || 0).toLocaleString();
+            document.getElementById('kpi-municipios').textContent = dashboardData.resumen.total_zonas;
+
+            if (dashboardData.por_proveedor.length > 0) {
+                const topISP = dashboardData.por_proveedor[0];
+                const porcentaje = ((topISP.cantidad / dashboardData.resumen.total_registros) * 100).toFixed(0);
+                document.getElementById('kpi-top-isp').textContent = porcentaje + '%';
+            }
+
+            const zonasConCompetencia = Math.floor(dashboardData.resumen.total_zonas * 0.6);
+            document.getElementById('kpi-density').textContent = zonasConCompetencia;
+        }
+
+        function createCharts() {
+            const providerCtx = document.getElementById('providerChart').getContext('2d');
+            const providerLabels = dashboardData.por_proveedor.map(p => p.proveedor || 'Sin proveedor');
+            const providerData = dashboardData.por_proveedor.map(p => p.cantidad);
+
+            new Chart(providerCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: providerLabels,
+                    datasets: [{
+                        data: providerData,
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe'],
+                        borderWidth: 3,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#2c3e50',
+                                font: { size: 13, family: 'Inter' },
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+
+            const geometryCtx = document.getElementById('geometryChart').getContext('2d');
+            const geometryLabels = dashboardData.por_tipo_geometria.map(g => g.tipo);
+            const geometryData = dashboardData.por_tipo_geometria.map(g => g.cantidad);
+
+            new Chart(geometryCtx, {
+                type: 'bar',
+                data: {
+                    labels: geometryLabels,
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: geometryData,
+                        backgroundColor: '#667eea',
+                        borderRadius: 8,
+                        barThickness: 50
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#2c3e50', font: { family: 'Inter' } },
+                            grid: { color: '#f0f0f0' }
+                        },
+                        x: {
+                            ticks: { color: '#2c3e50', font: { family: 'Inter' } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateProviderList() {
+            const listContainer = document.getElementById('provider-list-content');
+            let html = '';
+
+            dashboardData.por_proveedor.forEach(provider => {
+                const nombreISP = provider.proveedor || 'Sin proveedor';
+                html += `
+                    <div class="provider-item" onclick="abrirModalISP('${nombreISP}')">
+                        <div class="provider-name"><i class="fas fa-signal"></i> ${nombreISP}</div>
+                        <div class="provider-count">${provider.cantidad.toLocaleString()}</div>
+                    </div>
+                `;
+            });
+
+            listContainer.innerHTML = html;
+        }
+
+        async function abrirModalISP(nombreISP) {
+            const modal = document.getElementById('modal-isp');
+            document.getElementById('modal-isp-nombre').textContent = nombreISP;
+
+            modal.classList.add('show');
+
+            try {
+                const response = await fetch(`/cobertura/api/detalle-isp/${encodeURIComponent(nombreISP)}/`, {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    ispModalData = await response.json();
+                    actualizarModalISP();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al cargar datos del ISP');
+            }
+        }
+
+        function cerrarModalISP() {
+            const modal = document.getElementById('modal-isp');
+            modal.classList.remove('show');
+            ispModalData = null;
+            ispMap = null;
+
+            document.querySelectorAll('#modal-isp .modal-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#modal-isp .tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#modal-isp .modal-tab')[0].classList.add('active');
+            document.getElementById('isp-tab-resumen').classList.add('active');
+        }
+
+        function actualizarModalISP() {
+            if (!ispModalData) return;
+
+            document.getElementById('isp-resumen-total').textContent = ispModalData.resumen.total_registros.toLocaleString();
+            document.getElementById('isp-resumen-nodos').textContent = ispModalData.resumen.total_nodos.toLocaleString();
+            document.getElementById('isp-resumen-rutas').textContent = ispModalData.resumen.total_rutas.toLocaleString();
+            document.getElementById('isp-resumen-areas').textContent = ispModalData.resumen.total_areas.toLocaleString();
+            document.getElementById('isp-resumen-zonas').textContent = ispModalData.resumen.total_zonas;
+
+            const tbody = document.getElementById('isp-zonas-tbody');
+            let html = '';
+
+            ispModalData.zonas.forEach(zona => {
+                html += `
+                    <tr onclick="abrirModalKMZ('${zona.archivo_origen}')">
+                        <td><strong>${zona.nombre}</strong></td>
+                        <td><span class="badge badge-orange">${zona.nodos}</span></td>
+                        <td><span class="badge badge-blue">${zona.rutas}</span></td>
+                        <td><span class="badge badge-yellow">${zona.areas}</span></td>
+                        <td><strong>${zona.total_elementos}</strong></td>
+                        <td>
+                            <button class="btn btn-primary" style="padding: 8px 16px; font-size: 12px;"
+                                    onclick="event.stopPropagation(); irAZonaEnMapa('${zona.nombre}', ${zona.centro_lat}, ${zona.centro_lng})">
+                                <i class="fas fa-map-marker-alt"></i> Ver en Mapa
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function inicializarMapaISP() {
+            if (!ispModalData || !ispModalData.zonas.length) return;
+
+            ispMap = null;
+
+            let latSum = 0, lngSum = 0, count = 0;
+
+            ispModalData.zonas.forEach(zona => {
+                if (zona.centro_lat && zona.centro_lng) {
+                    latSum += zona.centro_lat;
+                    lngSum += zona.centro_lng;
+                    count++;
+                }
+            });
+
+            const centerLat = count > 0 ? latSum / count : 6.2442;
+            const centerLng = count > 0 ? lngSum / count : -75.5812;
+            const zoomLevel = ispModalData.zonas.length === 1 ? 13 : 8;
+
+            ispMap = new google.maps.Map(document.getElementById('map-isp'), {
+                center: { lat: centerLat, lng: centerLng },
+                zoom: zoomLevel,
+                mapTypeControl: true
+            });
+
+            ispModalData.zonas.forEach(zona => {
+                if (zona.centro_lat && zona.centro_lng) {
+                    const marker = new google.maps.Marker({
+                        position: { lat: zona.centro_lat, lng: zona.centro_lng },
+                        map: ispMap,
+                        title: zona.nombre,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            scale: 10,
+                            fillColor: '#667eea',
+                            fillOpacity: 1,
+                            strokeColor: '#FFFFFF',
+                            strokeWeight: 2
+                        }
+                    });
+
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `
+                            <div style="padding: 10px;">
+                                <h3 style="margin: 0 0 10px 0; color: #2c3e50;">${zona.nombre}</h3>
+                                <p style="margin: 5px 0;"><strong>Nodos:</strong> ${zona.nodos}</p>
+                                <p style="margin: 5px 0;"><strong>Rutas:</strong> ${zona.rutas}</p>
+                                <p style="margin: 5px 0;"><strong>Áreas:</strong> ${zona.areas}</p>
+                                <p style="margin: 5px 0;"><strong>Total:</strong> ${zona.total_elementos}</p>
+                            </div>
+                        `
+                    });
+
+                    marker.addListener('click', () => {
+                        infoWindow.open(ispMap, marker);
+                    });
+                }
+            });
+        }
+
+        function irAZonaEnMapa(nombreZona, lat, lng) {
+            const tabButtons = document.querySelectorAll('#modal-isp .modal-tab');
+            const mapaTab = Array.from(tabButtons).find(btn => btn.textContent.includes('Mapa'));
+            if (mapaTab) {
+                mapaTab.click();
+            }
+
+            setTimeout(() => {
+                if (ispMap && lat && lng) {
+                    ispMap.setCenter({ lat: lat, lng: lng });
+                    ispMap.setZoom(14);
+                }
+            }, 200);
+        }
+
+        async function abrirListaKMZ() {
+            try {
+                const response = await fetch('/cobertura/api/estadisticas/', {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    listaKMZData = data;
+
+                    const modal = document.getElementById('modal-lista-kmz');
+                    modal.classList.add('show');
+
+                    const grid = document.getElementById('kmz-list-grid');
+                    let html = '';
+
+                    if (data.archivos_kmz && data.archivos_kmz.length > 0) {
+                        data.archivos_kmz.forEach(archivo => {
+                            const nombreLegible = archivo.replace('.kmz', '').replace(/_/g, ' ');
+
+                            let proveedor = null;
+                            if (archivo.toLowerCase().includes('avidtel')) proveedor = 'Avidtel';
+                            else if (archivo.toLowerCase().includes('fibra')) proveedor = 'Fibra Óptica Antioquia';
+                            else if (archivo.toLowerCase().includes('starnet')) proveedor = 'Starnet';
+                            else if (archivo.toLowerCase().includes('technet')) proveedor = 'Technet';
+
+                            html += `
+                                <div class="kmz-list-item" onclick="seleccionarKMZ('${archivo}')">
+                                    <div class="kmz-list-item-header">
+                                        <div class="kmz-list-item-icon">
+                                            <i class="fas fa-folder-open"></i>
+                                        </div>
+                                        <div class="kmz-list-item-title">${nombreLegible}</div>
+                                    </div>
+                                    <div class="kmz-list-item-provider">${proveedor || 'Sin proveedor'}</div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    grid.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al cargar lista de archivos KMZ');
+            }
+        }
+
+        function cerrarListaKMZ() {
+            const modal = document.getElementById('modal-lista-kmz');
+            modal.classList.remove('show');
+            listaKMZData = null;
+        }
+
+        function seleccionarKMZ(archivo) {
+            cerrarListaKMZ();
+            abrirModalKMZ(archivo);
+        }
+
+        async function abrirModalKMZ(archivoKMZ) {
+            const modal = document.getElementById('modal-kmz');
+            const nombreLegible = archivoKMZ.replace('.kmz', '').replace(/_/g, ' ');
+            document.getElementById('modal-kmz-nombre').textContent = nombreLegible;
+
+            cerrarModalISP();
+
+            modal.classList.add('show');
+
+            try {
+                const response = await fetch(`/cobertura/api/detalle-kmz/${encodeURIComponent(archivoKMZ)}/`, {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    kmzModalData = await response.json();
+                    kmzFiltroActual = 'todos';
+                    actualizarModalKMZ();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al cargar datos del archivo KMZ');
+            }
+        }
+
+        function cerrarModalKMZ() {
+            const modal = document.getElementById('modal-kmz');
+            modal.classList.remove('show');
+            kmzModalData = null;
+            kmzMap = null;
+            kmzFiltroActual = 'todos';
+
+            document.querySelectorAll('#modal-kmz .modal-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#modal-kmz .tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#modal-kmz .modal-tab')[0].classList.add('active');
+            document.getElementById('kmz-tab-resumen').classList.add('active');
+        }
+
+        function actualizarModalKMZ() {
+            if (!kmzModalData) return;
+
+            document.getElementById('kmz-resumen-total').textContent = kmzModalData.resumen.total_registros.toLocaleString();
+            document.getElementById('kmz-resumen-nodos').textContent = kmzModalData.resumen.total_nodos.toLocaleString();
+            document.getElementById('kmz-resumen-rutas').textContent = kmzModalData.resumen.total_rutas.toLocaleString();
+            document.getElementById('kmz-resumen-areas').textContent = kmzModalData.resumen.total_areas.toLocaleString();
+            document.getElementById('kmz-resumen-proveedor').textContent = kmzModalData.proveedor;
+
+            document.getElementById('count-todos').textContent = kmzModalData.elementos.length;
+            document.getElementById('count-nodo').textContent = kmzModalData.resumen.total_nodos;
+            document.getElementById('count-ruta').textContent = kmzModalData.resumen.total_rutas;
+            document.getElementById('count-area').textContent = kmzModalData.resumen.total_areas;
+
+            actualizarTablaElementos();
+        }
+
+        function filtrarKMZ(tipo) {
+            kmzFiltroActual = tipo;
+
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('filter-' + tipo).classList.add('active');
+
+            actualizarTablaElementos();
+        }
+
+        function actualizarTablaElementos() {
+            if (!kmzModalData) return;
+
+            const tbody = document.getElementById('kmz-elementos-tbody');
+            let html = '';
+
+            const elementosFiltrados = kmzFiltroActual === 'todos'
+                ? kmzModalData.elementos
+                : kmzModalData.elementos.filter(e => e.tipo === kmzFiltroActual);
+
+            elementosFiltrados.forEach(elemento => {
+                html += `
+                    <tr onclick="verElementoEnMapa(${elemento.id})" style="cursor: pointer;">
+                        <td>
+                            <span style="font-size: 20px;">${elemento.icono}</span>
+                            <span class="badge" style="background: ${elemento.color}20; color: ${elemento.color};">
+                                ${elemento.tipo_legible}
+                            </span>
+                        </td>
+                        <td><strong>${elemento.nombre}</strong></td>
+                        <td><code style="font-size: 11px; color: #7f8c8d;">${elemento.geom_type}</code></td>
+                    </tr>
+                `;
+            });
+
+            if (elementosFiltrados.length === 0) {
+                html = '<tr><td colspan="3" style="text-align: center; padding: 40px; color: #7f8c8d;">No hay elementos de este tipo</td></tr>';
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        function inicializarMapaKMZ() {
+            if (!kmzModalData) return;
+
+            kmzMap = null;
+
+            const centerLat = kmzModalData.centro_lat || 6.2442;
+            const centerLng = kmzModalData.centro_lng || -75.5812;
+
+            kmzMap = new google.maps.Map(document.getElementById('map-kmz'), {
+                center: { lat: centerLat, lng: centerLng },
+                zoom: 12,
+                mapTypeControl: true
+            });
+
+            new google.maps.Marker({
+                position: { lat: centerLat, lng: centerLng },
+                map: kmzMap,
+                title: kmzModalData.nombre_legible,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 12,
+                    fillColor: '#667eea',
+                    fillOpacity: 1,
+                    strokeColor: '#FFFFFF',
+                    strokeWeight: 3
+                }
+            });
+        }
+
+        async function verElementoEnMapa(elementoId) {
+            const tabButtons = document.querySelectorAll('#modal-kmz .modal-tab');
+            const mapaTab = Array.from(tabButtons).find(btn => btn.textContent.includes('Mapa'));
+            if (mapaTab) {
+                mapaTab.click();
+            }
+
+            setTimeout(() => {
+                if (!kmzMap) {
+                    inicializarMapaKMZ();
+                }
+            }, 200);
+        }
+
+        function switchModalTab(modalType, tabName) {
+            const prefix = modalType === 'isp' ? 'isp' : 'kmz';
+
+            document.querySelectorAll(`#modal-${modalType} .modal-tab`).forEach(t => t.classList.remove('active'));
+            document.querySelectorAll(`#modal-${modalType} .tab-content`).forEach(t => t.classList.remove('active'));
+
+            event.currentTarget.classList.add('active');
+            document.getElementById(`${prefix}-tab-${tabName}`).classList.add('active');
+
+            if (tabName === 'mapa') {
+                setTimeout(() => {
+                    if (modalType === 'isp') {
+                        inicializarMapaISP();
+                    } else {
+                        inicializarMapaKMZ();
+                    }
+                }, 100);
+            }
+        }
+
+        function selectReport(tipo) {
+            selectedReportType = tipo;
+            document.querySelectorAll('.report-option').forEach(opt => {
+                opt.style.borderColor = '#e9ecef';
+                opt.style.background = '#f8f9fa';
+            });
+            event.currentTarget.style.borderColor = '#667eea';
+            event.currentTarget.style.background = '#667eea15';
+        }
+
+        async function generarReporte() {
+            const btnGenerar = document.getElementById('btn-generar');
+            const loading = document.getElementById('loading-report');
+
+            btnGenerar.disabled = true;
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('/cobertura/api/generar-reporte/', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ tipo: selectedReportType })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `reporte_cobertura_${selectedReportType}_${new Date().getTime()}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                } else {
+                    alert('Error al generar el reporte');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al generar el reporte');
+            } finally {
+                btnGenerar.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        function logout() {
+            window.location.href = '/cobertura/logout/';
+        }
+
+        document.getElementById('modal-isp').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModalISP();
+            }
         });
+
+        document.getElementById('modal-kmz').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModalKMZ();
+            }
+        });
+
+        document.getElementById('modal-lista-kmz').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarListaKMZ();
+            }
+        });
+
+        window.onload = loadDashboardData;
     </script>
 </body>
 </html>

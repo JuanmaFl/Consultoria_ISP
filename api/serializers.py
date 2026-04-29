@@ -1,32 +1,58 @@
 from rest_framework import serializers
+from django.contrib.gis.geos import GEOSGeometry
+import json
 from django.contrib.auth import get_user_model
 from .models import CoberturaISP
 
 Usuario = get_user_model()
 
+
 class UsuarioSerializer(serializers.ModelSerializer):
+    """Serializador para el modelo Usuario"""
     class Meta:
         model = Usuario
-        fields = ['id', 'username', 'email']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'telefono', 'empresa']
+        read_only_fields = ['id']
 
-class RegistroUsuarioSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150)
-    email = serializers.EmailField()
-    password = serializers.CharField(min_length=8, write_only=True)
-
-# --- ESTO ES LO QUE TE FALTABA ---
 
 class CoberturaISPSerializer(serializers.ModelSerializer):
+    """Serializador con geometría en formato GeoJSON"""
+    
     class Meta:
         model = CoberturaISP
-        fields = '__all__'
+        fields = ['id', 'nombre', 'descripcion', 'proveedor', 'tipo_servicio', 'velocidad', 'archivo_origen', 'fecha_importacion', 'geom']
+    
+    def to_representation(self, instance):
+        """Convertir a formato GeoJSON Feature"""
+        # Convertir geometría a GeoJSON
+        geometry = None
+        if instance.geom:
+            geometry = json.loads(instance.geom.geojson)
+        
+        return {
+            'id': instance.id,
+            'type': 'Feature',
+            'geometry': geometry,
+            'properties': {
+                'nombre': instance.nombre,
+                'descripcion': instance.descripcion,
+                'proveedor': instance.proveedor,
+                'tipo_servicio': instance.tipo_servicio,
+                'velocidad': instance.velocidad,
+                'archivo_origen': instance.archivo_origen,
+                'fecha_importacion': instance.fecha_importacion.isoformat() if instance.fecha_importacion else None
+            }
+        }
+
 
 class ConsultaCoberturaSerializer(serializers.Serializer):
-    latitud = serializers.FloatField()
-    longitud = serializers.FloatField()
-    radio_metros = serializers.IntegerField(default=1000)
+    """Serializador para consultas de cobertura"""
+    latitud = serializers.FloatField(required=True, min_value=-90, max_value=90)
+    longitud = serializers.FloatField(required=True, min_value=-180, max_value=180)
+    radio_metros = serializers.IntegerField(default=1000, min_value=1, max_value=5000)
 
 class ResultadoCoberturaSerializer(serializers.Serializer):
+    """Serializador para resultados de consulta de cobertura"""
     tiene_cobertura = serializers.BooleanField()
     isps_disponibles = serializers.ListField(child=serializers.CharField())
     total_isps = serializers.IntegerField()
@@ -38,16 +64,3 @@ class ResultadoCoberturaSerializer(serializers.Serializer):
     total_rutas = serializers.IntegerField()
     total_areas = serializers.IntegerField()
     total_elementos = serializers.IntegerField()
-
-class ResultadoBusquedaDireccionSerializer(serializers.Serializer):
-    direccion = serializers.CharField()
-    hay_cobertura = serializers.BooleanField()
-    isps_disponibles = serializers.ListField()
-    total_isps = serializers.IntegerField()
-    elementos = serializers.ListField()
-
-# Este también es necesario para una de tus funciones en views.py
-class ResultadoBusquedaDireccionSerializer(serializers.Serializer):
-    direccion_completa = serializers.CharField()
-    latitud = serializers.FloatField()
-    longitud = serializers.FloatField()

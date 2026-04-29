@@ -1,7 +1,7 @@
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
-import os
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ==============================================================================
@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ==============================================================================
 
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
 APPEND_SLASH = True
@@ -19,17 +19,13 @@ APPEND_SLASH = True
 # ==============================================================================
 
 INSTALLED_APPS = [
-    # Local
-    'api',
-    
-    # Django
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-     'django.contrib.gis',
+    'django.contrib.gis',
     
     # Django OTP (2FA)
     'django_otp',
@@ -40,7 +36,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 
-    
+    # Local
+    'api',
 ]
 
 # ==============================================================================
@@ -56,8 +53,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-     #'django_otp.middleware.OTPMiddleware',
-     #'api.middleware.Enforce2FAMiddleware',
+    'django_otp.middleware.OTPMiddleware',
+    'api.middleware.Enforce2FAMiddleware',
 ]
 
 # ==============================================================================
@@ -90,13 +87,16 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'OPTIONS': {
-            'timeout': 20,
-        }
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASSWORD'),
+        'HOST': config('DATABASE_HOST'),
+        'PORT': config('DATABASE_PORT'),
+        'CONN_MAX_AGE': 600,
     }
 }
+
 # ==============================================================================
 # AUTH & PASSWORD VALIDATION
 # ==============================================================================
@@ -143,11 +143,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SESSION SETTINGS
 # ==============================================================================
 
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False# False para HTTP, True solo si usas HTTPS
-SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_SECURE = False  # False para HTTP, True solo si usas HTTPS
+SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_AGE = 3600  # 1 hora
 SESSION_SAVE_EVERY_REQUEST = True  # Importante para 2FA
 SESSION_COOKIE_NAME = 'cobertura_sessionid'
@@ -179,8 +177,8 @@ X_FRAME_OPTIONS = 'DENY'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+        'api.authentication.CsrfExemptSessionAuthentication',  # Sesión sin CSRF
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # JWT como fallback
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -233,7 +231,7 @@ LOGGING = {
         'file': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'security.log',
+            'filename': '/opt/cobertura_isp/logs/security.log',
             'formatter': 'verbose',
         },
     },
@@ -245,19 +243,3 @@ LOGGING = {
         },
     },
 }
-
-# ==============================================================================
-# GEODJANGO CONFIGURATION (WINDOWS)
-# ==============================================================================
-import os
-
-OSGEO4W_ROOT = r'C:\OSGeo4W'
-# Esto asegura que las DLLs de soporte estén disponibles para el sistema
-os.environ['PATH'] = os.path.join(OSGEO4W_ROOT, 'bin') + os.pathsep + os.environ['PATH']
-
-# Rutas de las librerías
-GDAL_LIBRARY_PATH = r'C:\OSGeo4W\bin\gdal312.dll'
-GEOS_LIBRARY_PATH = r'C:\OSGeo4W\bin\geos_c.dll'
-
-# MODIFICA ESTA LÍNEA: Usa la ruta absoluta para evitar ambigüedades
-SPATIALITE_LIBRARY_PATH = r'C:\OSGeo4W\bin\mod_spatialite.dll'

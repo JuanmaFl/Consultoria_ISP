@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado 2FA - Sistema ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-inactive {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        .info-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        .info-section p {
+            color: #2c3e50;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <i class="fas fa-shield-alt"></i>
+            Seguridad de la Cuenta
+        </h1>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-lock"></i>
+                Autenticación de Dos Factores (2FA)
+            </h2>
+
+            {% if has_2fa %}
+                <div style="margin-bottom: 30px;">
+                    <span class="status-badge status-active">
+                        <i class="fas fa-check-circle"></i>
+                        Activo
+                    </span>
+                </div>
+
+                <div class="info-section">
+                    <p><strong>Tu cuenta está protegida con 2FA</strong></p>
+                    <p>Se requerirá un código de verificación cada vez que inicies sesión desde un nuevo dispositivo.</p>
+                    <p><strong>Dispositivo:</strong> {{ device.name }}</p>
+                    {% if device.confirmed_at %}
+                    <p><strong>Configurado:</strong> {{ device.confirmed_at|date:"d/m/Y H:i" }}</p>
+                    {% endif %}
+                </div>
+
+                <button onclick="disablePrompt()" class="btn btn-danger">
+                    <i class="fas fa-times-circle"></i>
+                    Desactivar 2FA
+                </button>
+            {% else %}
+                <div style="margin-bottom: 30px;">
+                    <span class="status-badge status-inactive">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Inactivo
+                    </span>
+                </div>
+
+                <div class="info-section">
+                    <p><strong>¿Por qué activar 2FA?</strong></p>
+                    <p>La autenticación de dos factores agrega una capa adicional de seguridad a tu cuenta. Incluso si alguien obtiene tu contraseña, no podrá acceder sin el código de tu teléfono.</p>
+                </div>
+
+                <a href="/cobertura/2fa/setup/" class="btn btn-primary">
+                    <i class="fas fa-shield-alt"></i>
+                    Activar 2FA Ahora
+                </a>
+            {% endif %}
+
+            <a href="/cobertura/mapa/" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Volver al mapa
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function disablePrompt() {
+            const code = prompt('Ingresa el código de tu app autenticadora para desactivar 2FA:');
+            if (code) {
+                disable2FA(code);
+            }
+        }
+
+        async function disable2FA(code) {
+            try {
+                const response = await fetch('/cobertura/api/2fa/disable/', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        code: code
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('2FA desactivado exitosamente');
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión');
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

@@ -4,112 +4,36 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
 venv/
+env/
 ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Environment
-venv/
-env/
-.venv
-.env
 
 # Django
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-/media
-/staticfiles
+staticfiles/
+media/
 
 # IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
-.DS_Store
-.project
-.pydevproject
-.settings/
 
-# OS
+# Archivos sensibles
+*.env
+*.pem
+*.key
+credenciales*.txt
+
+# Sistema
 .DS_Store
 Thumbs.db
 
-# Testing
-.coverage
-htmlcov/
-.pytest_cache/
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Media and static files
-/media/*
-/staticfiles/*
-!/media/.gitkeep
-!/staticfiles/.gitkeep
-
-# Logs
-logs/
-*.log
-
-# Celery
-celerybeat-schedule
-dump.rdb
-
-# IDE specific files
-.vscode
-.idea
-*.sublime-project
-*.sublime-workspace
-
-# OS files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-
-# Node (si usas npm/yarn para frontend)
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# Excluir carpeta de archivos subidos (KMZ, imágenes, etc.)
-media/
-media/*
-
-# Excluir base de datos local (opcional, pero recomendado)
-db.sqlite3
-db.sqlite3-journal
-
-# Entorno virtual
-venv/
-.env
-
-# Archivos temporales de Python
-__pycache__/
-*.py[cod]
+# Backups
+*.backup
+*.bak
+*.backup*
+cookies.txt
