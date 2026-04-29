@@ -72,8 +72,16 @@
         .spinner{display:inline-block;width:11px;height:11px;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px;margin-right:6px}
         @keyframes spin{to{transform:rotate(360deg)}}
 
-        /* ISP Filters Panel */
-        .isp-filters-panel{padding:20px;border-bottom:1px solid var(--line);background:var(--bg)}
+        /* ISP Filters Panel - COLAPSABLE */
+        .isp-filters-panel{border-bottom:1px solid var(--line);background:var(--bg)}
+        .isp-filters-toggle{padding:14px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:var(--surface);border-bottom:1px solid var(--line);transition:background .15s}
+        .isp-filters-toggle:hover{background:var(--bg)}
+        .isp-toggle-title{font-size:13px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
+        .isp-toggle-icon{font-family:var(--mono);font-size:12px;color:var(--ink-2);transition:transform .2s}
+        .isp-toggle-icon.open{transform:rotate(90deg)}
+        .isp-filters-content{max-height:0;overflow:hidden;transition:max-height .3s ease-out}
+        .isp-filters-content.open{max-height:400px;overflow-y:auto}
+        .isp-filters-inner{padding:20px}
         .isp-filters-head{margin-bottom:12px}
         .isp-filters-head .search-tag{margin-bottom:4px}
         .isp-filters-head .search-title{font-size:15px;font-weight:600}
@@ -171,20 +179,30 @@
 
     <div class="container">
         <div class="sidebar">
-            <!-- ISP Filters Panel -->
+            <!-- ISP Filters Panel - COLAPSABLE (por defecto cerrado) -->
             <div class="isp-filters-panel">
-                <div class="isp-filters-head">
-                    <div class="search-tag">// Filtros de visualización</div>
-                    <div class="search-title">Proveedores ISP</div>
-                </div>
-                <div id="isp-filters-list">
-                    <div style="text-align:center;padding:20px;color:var(--ink-3);font-size:12px">
-                        <span class="spinner"></span> Cargando proveedores...
+                <div class="isp-filters-toggle" onclick="toggleISPFiltersPanel()">
+                    <div class="isp-toggle-title">
+                        <span>⚙</span>
+                        <span>Filtrar por ISP</span>
                     </div>
+                    <div id="isp-toggle-icon" class="isp-toggle-icon">▶</div>
                 </div>
-                <div class="isp-filter-actions">
-                    <button class="btn-filter-action" onclick="selectAllISPs()">Todos</button>
-                    <button class="btn-filter-action" onclick="deselectAllISPs()">Ninguno</button>
+                <div id="isp-filters-content" class="isp-filters-content">
+                    <div class="isp-filters-inner">
+                        <div class="isp-filters-head">
+                            <div class="search-tag">// Proveedores disponibles</div>
+                        </div>
+                        <div id="isp-filters-list">
+                            <div style="text-align:center;padding:20px;color:var(--ink-3);font-size:12px">
+                                <span class="spinner"></span> Cargando proveedores...
+                            </div>
+                        </div>
+                        <div class="isp-filter-actions">
+                            <button class="btn-filter-action" onclick="selectAllISPs()">Todos</button>
+                            <button class="btn-filter-action" onclick="deselectAllISPs()">Ninguno</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -269,19 +287,28 @@
             loadISPFilters();
         }
 
+        // Toggle ISP Filters Panel
+        function toggleISPFiltersPanel() {
+            const content = document.getElementById('isp-filters-content');
+            const icon = document.getElementById('isp-toggle-icon');
+            
+            content.classList.toggle('open');
+            icon.classList.toggle('open');
+        }
+
         async function loadISPFilters() {
             try {
                 const response = await fetch('/cobertura/api/dashboard/', { credentials: 'include' });
                 if (response.ok) {
                     const data = await response.json();
                     const isps = data.por_proveedor || [];
-                    
+
                     ispFilters = {};
                     isps.forEach(isp => {
                         const name = isp.proveedor || 'Sin proveedor';
                         ispFilters[name] = { checked: true, count: isp.cantidad };
                     });
-                    
+
                     renderISPFilters();
                 }
             } catch (error) {
@@ -292,7 +319,7 @@
         function renderISPFilters() {
             const container = document.getElementById('isp-filters-list');
             let html = '';
-            
+
             Object.keys(ispFilters).forEach(ispName => {
                 const filter = ispFilters[ispName];
                 html += `
@@ -303,14 +330,14 @@
                     </div>
                 `;
             });
-            
+
             container.innerHTML = html;
         }
 
         function toggleISPFilter(ispName) {
             ispFilters[ispName].checked = !ispFilters[ispName].checked;
             renderISPFilters();
-            
+
             // Re-render current results with filter applied
             if (currentResults) {
                 applyISPFiltersToResults();
@@ -335,7 +362,7 @@
 
         function applyISPFiltersToResults() {
             if (!currentResults) return;
-            
+
             // Filter results based on selected ISPs
             const filteredData = {
                 ...currentResults,
@@ -344,10 +371,10 @@
                 rutas_cercanas: currentResults.rutas_cercanas?.filter(r => ispFilters[r.proveedor]?.checked) || [],
                 areas_cercanas: currentResults.areas_cercanas?.filter(a => ispFilters[a.proveedor]?.checked) || []
             };
-            
+
             filteredData.total_isps = filteredData.isps_disponibles.length;
             filteredData.tiene_cobertura = filteredData.total_isps > 0;
-            
+
             mostrarResultados(filteredData, currentResults._lat, currentResults._lng);
         }
 
@@ -405,8 +432,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ latitud: lat, longitud: lng, radio_metros: 1000 })
                 });
-                if (response.ok) { 
-                    const data = await response.json(); 
+                if (response.ok) {
+                    const data = await response.json();
                     data._lat = lat; // Store for filter re-application
                     data._lng = lng;
                     currentResults = data;
