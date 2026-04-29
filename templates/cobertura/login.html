@@ -3,102 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistema de Cobertura ISP</title>
+    <title>Iniciar sesión · Cobertura ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+        :root{
+            --bg: oklch(0.985 0.004 260);
+            --surface: #ffffff;
+            --ink: oklch(0.22 0.02 260);
+            --ink-2: oklch(0.45 0.015 260);
+            --ink-3: oklch(0.62 0.012 260);
+            --line: oklch(0.92 0.008 260);
+            --line-2: oklch(0.86 0.01 260);
+            --accent: oklch(0.52 0.16 248);
+            --accent-ink: oklch(0.42 0.18 248);
+            --accent-bg: oklch(0.97 0.02 248);
+            --danger: oklch(0.55 0.18 25);
+            --danger-bg: oklch(0.97 0.025 25);
+            --radius: 6px;
+            --mono: 'JetBrains Mono', ui-monospace, monospace;
         }
-        .login-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            max-width: 400px;
-            width: 100%;
+        *{margin:0;padding:0;box-sizing:border-box}
+        html,body{height:100%}
+        body{
+            font-family:'Inter',system-ui,sans-serif;
+            background:var(--bg);
+            color:var(--ink);
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            min-height:100vh;
+            font-feature-settings:'cv11','ss01';
+            -webkit-font-smoothing:antialiased;
         }
-        .login-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
+        .left{
+            padding:48px;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+            border-right:1px solid var(--line);
+            background:var(--surface);
         }
-        .login-header h1 { font-size: 24px; margin-bottom: 10px; }
-        .login-header p { font-size: 14px; opacity: 0.9; }
-        .login-form { padding: 40px 30px; }
-        .form-group { margin-bottom: 25px; }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-            font-size: 14px;
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            font-weight:600;
+            font-size:14px;
         }
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+        .brand-mark{
+            width:28px;height:28px;border-radius:6px;
+            background:var(--ink);
+            position:relative;
+            display:grid;place-items:center;
         }
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
+        .brand-mark::before{
+            content:"";
+            width:10px;height:10px;border-radius:50%;
+            border:1.5px solid var(--bg);
         }
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
+        .brand-mark::after{
+            content:"";
+            position:absolute;
+            width:18px;height:1.5px;
+            background:var(--bg);
+            transform:rotate(-30deg);
         }
-        .btn-login:hover { transform: translateY(-2px); }
-        .btn-login:active { transform: translateY(0); }
-        .error-message {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
+        .login-card{
+            max-width:380px;
+            width:100%;
+            margin:auto 0;
+        }
+        .eyebrow{
+            font-family:var(--mono);
+            font-size:11px;
+            text-transform:uppercase;
+            letter-spacing:0.12em;
+            color:var(--ink-3);
+            margin-bottom:16px;
+        }
+        h1{
+            font-size:28px;
+            font-weight:600;
+            letter-spacing:-0.02em;
+            margin-bottom:8px;
+        }
+        .lede{
+            color:var(--ink-2);
+            font-size:14px;
+            line-height:1.5;
+            margin-bottom:32px;
+        }
+        .form-group{margin-bottom:18px}
+        .form-group label{
+            display:flex;
+            justify-content:space-between;
+            align-items:baseline;
+            margin-bottom:6px;
+            font-size:13px;
+            font-weight:500;
+            color:var(--ink);
+        }
+        .form-group label small{
+            font-family:var(--mono);
+            font-size:10px;
+            color:var(--ink-3);
+            text-transform:uppercase;
+            letter-spacing:0.08em;
+        }
+        .form-group input{
+            width:100%;
+            padding:11px 13px;
+            border:1px solid var(--line-2);
+            border-radius:var(--radius);
+            font-size:14px;
+            font-family:inherit;
+            background:var(--surface);
+            color:var(--ink);
+            transition:border-color .15s, box-shadow .15s;
+        }
+        .form-group input:focus{
+            outline:none;
+            border-color:var(--accent);
+            box-shadow:0 0 0 3px oklch(0.52 0.16 248 / .12);
+        }
+        .btn-login{
+            width:100%;
+            padding:11px;
+            background:var(--ink);
+            color:var(--surface);
+            border:1px solid var(--ink);
+            border-radius:var(--radius);
+            font-size:14px;
+            font-weight:500;
+            font-family:inherit;
+            cursor:pointer;
+            transition:opacity .15s;
+            margin-top:8px;
+            display:flex;align-items:center;justify-content:center;gap:8px;
+        }
+        .btn-login:hover{opacity:.88}
+        .btn-login:active{transform:translateY(1px)}
+        .error-message{
+            background:var(--danger-bg);
+            border:1px solid oklch(0.85 0.05 25);
+            color:var(--danger);
+            padding:10px 12px;
+            border-radius:var(--radius);
+            margin-bottom:18px;
+            font-size:13px;
+            display:flex;gap:8px;align-items:flex-start;
+        }
+        .error-message::before{
+            content:"!";
+            display:grid;place-items:center;
+            width:16px;height:16px;
+            background:var(--danger);color:#fff;
+            border-radius:50%;font-weight:700;font-size:11px;
+            flex-shrink:0;margin-top:1px;
+        }
+        .footer-meta{
+            font-family:var(--mono);
+            font-size:11px;
+            color:var(--ink-3);
+            display:flex;
+            justify-content:space-between;
+        }
+        /* right panel - decorative grid */
+        .right{
+            background:
+                linear-gradient(to right, oklch(0.94 0.008 260 / .6) 1px, transparent 1px) 0 0/40px 40px,
+                linear-gradient(to bottom, oklch(0.94 0.008 260 / .6) 1px, transparent 1px) 0 0/40px 40px,
+                var(--bg);
+            position:relative;
+            overflow:hidden;
+            padding:48px;
+            display:flex;
+            flex-direction:column;
+            justify-content:flex-end;
+        }
+        .right::before{
+            content:"";
+            position:absolute;
+            inset:0;
+            background:radial-gradient(ellipse at 70% 30%, oklch(0.97 0.02 248 / .8), transparent 60%);
+            pointer-events:none;
+        }
+        .map-decor{
+            position:absolute;
+            inset:0;
+            display:grid;
+            place-items:center;
+            pointer-events:none;
+        }
+        .map-decor svg{
+            width:min(80%, 520px);
+            opacity:.55;
+        }
+        .info-block{
+            position:relative;
+            max-width:420px;
+            background:var(--surface);
+            border:1px solid var(--line);
+            border-radius:8px;
+            padding:20px 22px;
+        }
+        .info-block .tag{
+            font-family:var(--mono);
+            font-size:10px;
+            color:var(--accent-ink);
+            background:var(--accent-bg);
+            padding:3px 7px;
+            border-radius:4px;
+            display:inline-block;
+            margin-bottom:10px;
+            text-transform:uppercase;
+            letter-spacing:0.1em;
+        }
+        .info-block h3{
+            font-size:15px;
+            font-weight:600;
+            margin-bottom:6px;
+        }
+        .info-block p{
+            font-size:13px;
+            color:var(--ink-2);
+            line-height:1.5;
+        }
+        .stats-row{
+            position:relative;
+            display:flex;
+            gap:32px;
+            margin-bottom:24px;
+        }
+        .stat{
+            font-family:var(--mono);
+        }
+        .stat .num{
+            font-size:22px;
+            font-weight:600;
+            color:var(--ink);
+            letter-spacing:-0.01em;
+        }
+        .stat .lbl{
+            font-size:10px;
+            color:var(--ink-3);
+            text-transform:uppercase;
+            letter-spacing:0.1em;
+        }
+        @media(max-width:880px){
+            body{grid-template-columns:1fr}
+            .right{display:none}
+            .left{padding:32px 24px}
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <h1>🌐 Sistema de Cobertura ISP</h1>
-            <p>Consulta de cobertura geográfica</p>
+    <div class="left">
+        <div class="brand">
+            <div class="brand-mark"></div>
+            Cobertura ISP
         </div>
-        <div class="login-form">
+
+        <div class="login-card">
+            <div class="eyebrow">// Acceso al sistema</div>
+            <h1>Inicia sesión</h1>
+            <p class="lede">Plataforma de gestión y consulta de cobertura geográfica para proveedores de internet.</p>
+
             {% if error %}
             <div class="error-message">{{ error }}</div>
             {% endif %}
+
             <form method="POST" action="/cobertura/login/">
                 {% csrf_token %}
                 <div class="form-group">
-                    <label for="username">Usuario</label>
-                    <input type="text" id="username" name="username" required autocomplete="username">
+                    <label for="username">Usuario <small>requerido</small></label>
+                    <input type="text" id="username" name="username" required autocomplete="username" placeholder="tu.usuario">
                 </div>
                 <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                    <label for="password">Contraseña <small>requerido</small></label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••">
                 </div>
-                <button type="submit" class="btn-login">Iniciar Sesión</button>
+                <button type="submit" class="btn-login">
+                    Iniciar sesión
+                    <span style="font-family:var(--mono);font-size:13px">→</span>
+                </button>
             </form>
+        </div>
+
+        <div class="footer-meta">
+            <span>v2.4 · 2026</span>
+            <span>Protegido con 2FA</span>
+        </div>
+    </div>
+
+    <div class="right">
+        <div class="map-decor">
+            <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- abstract coverage shapes -->
+                <circle cx="120" cy="140" r="60" stroke="oklch(0.55 0.16 248)" stroke-width="1" stroke-dasharray="2 4" fill="oklch(0.55 0.16 248 / .04)"/>
+                <circle cx="260" cy="240" r="90" stroke="oklch(0.55 0.16 248)" stroke-width="1" stroke-dasharray="2 4" fill="oklch(0.55 0.16 248 / .04)"/>
+                <circle cx="180" cy="280" r="40" stroke="oklch(0.55 0.16 248)" stroke-width="1" fill="oklch(0.55 0.16 248 / .06)"/>
+                <path d="M40 200 Q 120 100 220 180 T 380 220" stroke="oklch(0.55 0.16 248)" stroke-width="1.5" fill="none"/>
+                <path d="M60 320 L 180 280 L 260 240 L 340 180" stroke="oklch(0.55 0.16 248 / .6)" stroke-width="1" fill="none"/>
+                <circle cx="40" cy="200" r="3" fill="oklch(0.55 0.16 248)"/>
+                <circle cx="220" cy="180" r="3" fill="oklch(0.55 0.16 248)"/>
+                <circle cx="380" cy="220" r="3" fill="oklch(0.55 0.16 248)"/>
+                <circle cx="60" cy="320" r="3" fill="oklch(0.55 0.16 248)"/>
+                <circle cx="180" cy="280" r="3" fill="oklch(0.55 0.16 248)"/>
+                <circle cx="340" cy="180" r="3" fill="oklch(0.55 0.16 248)"/>
+            </svg>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat">
+                <div class="num">12.4k</div>
+                <div class="lbl">Puntos</div>
+            </div>
+            <div class="stat">
+                <div class="num">8</div>
+                <div class="lbl">ISPs</div>
+            </div>
+            <div class="stat">
+                <div class="num">142</div>
+                <div class="lbl">Municipios</div>
+            </div>
+        </div>
+
+        <div class="info-block">
+            <span class="tag">Sistema en línea</span>
+            <h3>Consulta cobertura en tiempo real</h3>
+            <p>Carga archivos KMZ, ejecuta consultas masivas vía CSV y genera reportes ejecutivos para tus stakeholders.</p>
         </div>
     </div>
 </body>

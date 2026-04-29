@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect
 from django.conf import settings
 import requests
+import urllib.parse
 from django.http import HttpResponse, FileResponse, JsonResponse
 from .models import CoberturaISP
 from .serializers import (
@@ -1258,3 +1259,79 @@ def dashboard_view(request):
     return render(request, 'cobertura/dashboard.html', {
         'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY
     })
+    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def listar_proveedores(request):
+    """
+    Listar todos los proveedores únicos en el sistema
+    
+    GET /api/listar-proveedores/
+    """
+    proveedores = list(
+        CoberturaISP.objects.values_list('proveedor', flat=True)
+        .distinct()
+        .exclude(proveedor__isnull=True)
+        .exclude(proveedor='')
+        .order_by('proveedor')
+    )
+    
+    return Response({
+        'total': len(proveedores),
+        'proveedores': proveedores
+    })
+    
+import urllib.parse
+from django.http import JsonResponse
+
+# ===============================================
+# DELETE KMZ - SPRINT 2
+# ===============================================
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_kmz(request, archivo_nombre):
+    """
+    Eliminar archivo KMZ y todos sus registros asociados
+    
+    DELETE /api/delete-kmz/<archivo_nombre>/
+    """
+    from urllib.parse import unquote
+    from django.db import transaction
+    
+    # Decodificar nombre del archivo
+    archivo_nombre = unquote(archivo_nombre)
+    
+    # Verificar que el archivo existe
+    registros = CoberturaISP.objects.filter(archivo_origen=archivo_nombre)
+    
+    if not registros.exists():
+        return Response({
+            'error': f'Archivo "{archivo_nombre}" no encontrado'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    # Contar registros antes de eliminar
+    total_registros = registros.count()
+    proveedor = registros.first().proveedor if registros.first() else 'Desconocido'
+    
+    try:
+        # Eliminar todos los registros asociados (transacción atómica)
+        with transaction.atomic():
+            registros.delete()
+        
+        return Response({
+            'success': True,
+            'mensaje': f'Archivo "{archivo_nombre}" eliminado exitosamente',
+            'detalles': {
+                'archivo': archivo_nombre,
+                'proveedor': proveedor,
+                'registros_eliminados': total_registros
+            }
+        }, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+        return Response({
+            'error': 'Error al eliminar el archivo',
+            'detalle': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

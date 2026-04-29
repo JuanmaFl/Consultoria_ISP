@@ -4,150 +4,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Upload - {{ proveedor }}</title>
+    <title>Portal de carga · {{ proveedor }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root{
+            --bg: oklch(0.985 0.004 260);
+            --surface:#fff;
+            --ink: oklch(0.22 0.02 260);
+            --ink-2: oklch(0.45 0.015 260);
+            --ink-3: oklch(0.62 0.012 260);
+            --line: oklch(0.92 0.008 260);
+            --line-2: oklch(0.86 0.01 260);
+            --accent: oklch(0.52 0.16 248);
+            --accent-bg: oklch(0.97 0.02 248);
+            --success: oklch(0.55 0.14 155);
+            --success-bg: oklch(0.96 0.04 155);
+            --danger: oklch(0.55 0.18 25);
+            --danger-bg: oklch(0.97 0.025 25);
+            --mono:'JetBrains Mono',ui-monospace,monospace;
         }
-        .upload-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
+        body{
+            font-family:'Inter',system-ui,sans-serif !important;
+            background:var(--bg);color:var(--ink);
+            min-height:100vh;display:grid;place-items:center;padding:24px;
+            -webkit-font-smoothing:antialiased;
         }
-        .upload-header {
-            text-align: center;
-            margin-bottom: 30px;
+        .upload-container{
+            background:var(--surface);
+            border:1px solid var(--line);
+            border-radius:10px;
+            padding:32px;
+            max-width:560px;width:100%;
         }
-        .upload-header h1 {
-            color: #667eea;
-            font-weight: bold;
-            margin-bottom: 10px;
+        .upload-header{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+        .brand-tag{
+            display:inline-flex;align-items:center;gap:8px;
+            padding:5px 10px;border-radius:4px;
+            background:var(--accent-bg);color:oklch(0.4 0.16 248);
+            font-family:var(--mono);font-size:11px;font-weight:500;
+            text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;
         }
-        .upload-header .provider-name {
-            color: #764ba2;
-            font-size: 1.5rem;
-            font-weight: 600;
+        .upload-header h1{font-size:22px;font-weight:600;letter-spacing:-0.015em;margin-bottom:4px}
+        .provider-name{
+            font-family:var(--mono);font-size:13px;color:var(--ink-2);
         }
-        .stats-box {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
+        .stats-box{
+            display:grid;grid-template-columns:1fr 1fr;gap:1px;
+            background:var(--line);
+            border:1px solid var(--line);border-radius:6px;
+            margin-bottom:20px;overflow:hidden;
         }
-        .stats-box .stat-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
+        .stat-cell{background:var(--surface);padding:14px 16px}
+        .stat-cell .lbl{
+            font-family:var(--mono);font-size:10px;
+            color:var(--ink-3);text-transform:uppercase;
+            letter-spacing:0.08em;margin-bottom:4px;
         }
-        .drop-zone {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
+        .stat-cell .val{font-size:18px;font-weight:600;color:var(--ink)}
+        .drop-zone{
+            border:1.5px dashed var(--line-2);
+            border-radius:8px;padding:36px 20px;
+            text-align:center;cursor:pointer;
+            transition:all .2s;
+            background:var(--bg);
+            margin-bottom:16px;
         }
-        .drop-zone:hover, .drop-zone.drag-over {
-            border-color: #764ba2;
-            background: #f8f9fa;
+        .drop-zone:hover, .drop-zone.drag-over{
+            border-color:var(--accent);
+            background:var(--accent-bg);
         }
-        .drop-zone i {
-            font-size: 3rem;
-            color: #667eea;
-            margin-bottom: 15px;
+        .drop-icon{
+            width:40px;height:40px;border-radius:8px;
+            background:var(--surface);border:1px solid var(--line);
+            display:grid;place-items:center;margin:0 auto 14px;
+            font-family:var(--mono);font-size:18px;color:var(--ink-2);
         }
-        .btn-upload {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            padding: 12px 40px;
-            font-size: 1.1rem;
-            border-radius: 25px;
+        .drop-zone h4{font-size:15px;font-weight:600;margin-bottom:4px}
+        .drop-zone p{font-size:12px;color:var(--ink-3)}
+        .file-info{
+            background:var(--success-bg);
+            border:1px solid oklch(0.85 0.05 155);
+            border-radius:6px;padding:12px 14px;
+            margin-bottom:16px;display:none;
+            align-items:center;gap:10px;
+            font-size:13px;
         }
-        .btn-upload:disabled {
-            opacity: 0.6;
+        .file-info::before{
+            content:"✓";color:var(--success);font-weight:700;
         }
-        .progress-container {
-            display: none;
-            margin-top: 20px;
+        .btn-upload{
+            width:100%;padding:11px;
+            background:var(--ink);color:var(--surface);
+            border:1px solid var(--ink);border-radius:6px;
+            font-size:14px;font-weight:500;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;gap:8px;
         }
-        .alert-custom {
-            border-radius: 10px;
-            margin-top: 20px;
+        .btn-upload:disabled{opacity:.4;cursor:not-allowed;background:var(--ink-3);border-color:var(--ink-3)}
+        .btn-upload:not(:disabled):hover{opacity:.88}
+        .progress-container{display:none;margin-top:16px}
+        .progress-bar-wrap{
+            height:6px;background:var(--line);border-radius:3px;overflow:hidden;
+        }
+        .progress-bar-fill{
+            height:100%;background:var(--ink);
+            transition:width .3s;border-radius:3px;
+        }
+        .progress-text{
+            margin-top:8px;font-family:var(--mono);font-size:11px;
+            color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;
+        }
+        .alert-custom{
+            border-radius:6px;padding:12px 14px;font-size:13px;
+            margin-top:16px;border:1px solid;
+        }
+        .alert-success{background:var(--success-bg);color:var(--success);border-color:oklch(0.85 0.05 155)}
+        .alert-danger{background:var(--danger-bg);color:var(--danger);border-color:oklch(0.85 0.05 25)}
+        .footer-note{
+            margin-top:20px;text-align:center;
+            font-family:var(--mono);font-size:11px;
+            color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;
         }
     </style>
 </head>
 <body>
     <div class="upload-container">
         <div class="upload-header">
-            <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-            <h1>Portal de Upload KMZ</h1>
+            <span class="brand-tag">Portal externo · KMZ</span>
+            <h1>Carga tu archivo de cobertura</h1>
             <div class="provider-name">{{ proveedor }}</div>
         </div>
 
         <div class="stats-box">
-            <div class="stat-item">
-                <span><i class="fas fa-file-archive text-primary"></i> Archivos subidos:</span>
-                <strong>{{ archivos_subidos }}</strong>
+            <div class="stat-cell">
+                <div class="lbl">Archivos subidos</div>
+                <div class="val">{{ archivos_subidos }}</div>
             </div>
-            <div class="stat-item">
-                <span><i class="fas fa-clock text-primary"></i> Última subida:</span>
-                <strong>{% if ultima_subida %}{{ ultima_subida|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}</strong>
+            <div class="stat-cell">
+                <div class="lbl">Última subida</div>
+                <div class="val" style="font-family:var(--mono);font-size:14px">{% if ultima_subida %}{{ ultima_subida|date:"d/m/Y H:i" }}{% else %}—{% endif %}</div>
             </div>
         </div>
 
         <form id="uploadForm" enctype="multipart/form-data">
             {% csrf_token %}
-            
+
             <div class="drop-zone" id="dropZone">
-                <i class="fas fa-cloud-upload-alt"></i>
+                <div class="drop-icon">↑</div>
                 <h4>Arrastra tu archivo KMZ aquí</h4>
-                <p class="text-muted">o haz clic para seleccionar</p>
-                <input type="file" id="fileInput" name="archivo" accept=".kmz" style="display: none;">
+                <p>o haz clic para seleccionar</p>
+                <input type="file" id="fileInput" name="archivo" accept=".kmz" style="display:none">
             </div>
 
-            <div id="fileInfo" class="alert alert-info" style="display: none;">
-                <i class="fas fa-file-archive"></i>
-                <span id="fileName"></span>
-                <span id="fileSize" class="text-muted"></span>
+            <div id="fileInfo" class="file-info">
+                <span id="fileName" style="font-weight:500"></span>
+                <span id="fileSize" style="font-family:var(--mono);color:var(--ink-3);margin-left:auto;font-size:12px"></span>
             </div>
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary btn-upload" id="submitBtn" disabled>
-                    <i class="fas fa-upload"></i> Subir Archivo
-                </button>
-            </div>
+            <button type="submit" class="btn-upload" id="submitBtn" disabled>
+                <span>Subir archivo</span>
+                <span style="font-family:var(--mono)">→</span>
+            </button>
 
             <div class="progress-container" id="progressContainer">
-                <div class="progress">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                         role="progressbar" 
-                         style="width: 0%"
-                         id="progressBar">
-                    </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
                 </div>
-                <p class="text-center mt-2" id="progressText">Procesando...</p>
+                <p class="progress-text" id="progressText">Procesando...</p>
             </div>
 
             <div id="messageContainer"></div>
         </form>
 
-        <div class="text-center mt-4">
-            <small class="text-muted">
-                <i class="fas fa-info-circle"></i> 
-                Solo se permiten archivos KMZ (máximo 10MB)
-            </small>
-        </div>
+        <div class="footer-note">Solo archivos KMZ · Máximo 10 MB</div>
     </div>
 
     <script>
@@ -163,10 +192,8 @@
         const progressText = document.getElementById('progressText');
         const messageContainer = document.getElementById('messageContainer');
 
-        // Click en drop zone
         dropZone.addEventListener('click', () => fileInput.click());
 
-        // Drag & Drop
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('drag-over');
@@ -179,7 +206,6 @@
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('drag-over');
-            
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 fileInput.files = files;
@@ -187,45 +213,36 @@
             }
         });
 
-        // Selección de archivo
         fileInput.addEventListener('change', handleFileSelect);
 
         function handleFileSelect() {
             const file = fileInput.files[0];
             if (file) {
-                // Validar extensión
                 if (!file.name.toLowerCase().endsWith('.kmz')) {
                     showMessage('Solo se permiten archivos KMZ', 'danger');
                     fileInput.value = '';
                     return;
                 }
-
-                // Validar tamaño (10MB)
                 if (file.size > 10 * 1024 * 1024) {
                     showMessage('El archivo es muy grande (máximo 10MB)', 'danger');
                     fileInput.value = '';
                     return;
                 }
-
-                // Mostrar info del archivo
                 fileName.textContent = file.name;
-                fileSize.textContent = `(${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-                fileInfo.style.display = 'block';
+                fileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                fileInfo.style.display = 'flex';
                 submitBtn.disabled = false;
             }
         }
 
-        // Submit form
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const file = fileInput.files[0];
             if (!file) return;
 
             const formData = new FormData();
             formData.append('archivo', file);
 
-            // Mostrar progreso
             submitBtn.disabled = true;
             progressContainer.style.display = 'block';
             progressBar.style.width = '30%';
@@ -241,32 +258,27 @@
                 progressText.textContent = 'Procesando...';
 
                 const data = await response.json();
-
                 progressBar.style.width = '100%';
 
                 if (response.ok) {
                     showMessage(
-                        `✅ ${data.mensaje}<br>` +
-                        `<small>Total elementos: ${data.estadisticas.total_elementos} | ` +
-                        `Guardados: ${data.estadisticas.guardados}</small>`,
+                        `✓ ${data.mensaje}<br><span style="font-family:var(--mono);font-size:11px;opacity:.8">Total elementos: ${data.estadisticas.total_elementos} · Guardados: ${data.estadisticas.guardados}</span>`,
                         'success'
                     );
-
-                    // Resetear form
                     setTimeout(() => {
                         uploadForm.reset();
                         fileInfo.style.display = 'none';
                         progressContainer.style.display = 'none';
                         submitBtn.disabled = true;
-                        location.reload(); // Recargar para actualizar estadísticas
+                        location.reload();
                     }, 3000);
                 } else {
-                    showMessage(`❌ Error: ${data.error}`, 'danger');
+                    showMessage(`✕ Error: ${data.error}`, 'danger');
                     progressContainer.style.display = 'none';
                     submitBtn.disabled = false;
                 }
             } catch (error) {
-                showMessage('❌ Error de conexión. Intenta de nuevo.', 'danger');
+                showMessage('✕ Error de conexión. Intenta de nuevo.', 'danger');
                 progressContainer.style.display = 'none';
                 submitBtn.disabled = false;
             }
@@ -274,14 +286,10 @@
 
         function showMessage(message, type) {
             messageContainer.innerHTML = `
-                <div class="alert alert-${type} alert-custom alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+                <div class="alert-custom alert-${type}">${message}</div>
             `;
         }
     </script>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

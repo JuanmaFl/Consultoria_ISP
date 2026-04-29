@@ -3,545 +3,385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta Masiva de Cobertura - Sistema ISP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Consulta masiva · Cobertura ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root{
+            --bg: oklch(0.985 0.004 260);
+            --surface:#fff;
+            --ink: oklch(0.22 0.02 260);
+            --ink-2: oklch(0.45 0.015 260);
+            --ink-3: oklch(0.62 0.012 260);
+            --line: oklch(0.92 0.008 260);
+            --line-2: oklch(0.86 0.01 260);
+            --accent: oklch(0.52 0.16 248);
+            --accent-bg: oklch(0.97 0.02 248);
+            --success: oklch(0.55 0.14 155);
+            --success-bg: oklch(0.96 0.04 155);
+            --warning: oklch(0.62 0.14 75);
+            --warning-bg: oklch(0.97 0.04 75);
+            --danger: oklch(0.55 0.18 25);
+            --danger-bg: oklch(0.97 0.025 25);
+            --info: oklch(0.55 0.14 230);
+            --info-bg: oklch(0.96 0.03 230);
+            --mono:'JetBrains Mono',ui-monospace,monospace;
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Inter',system-ui,sans-serif;
+            background:var(--bg);color:var(--ink);
+            min-height:100vh;-webkit-font-smoothing:antialiased;
         }
-
-        /* Header */
-        .header {
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        .topbar{
+            background:var(--surface);border-bottom:1px solid var(--line);
+            padding:12px 24px;display:flex;justify-content:space-between;align-items:center;
+            position:sticky;top:0;z-index:50;
         }
-
-        .header h1 {
-            color: #2c3e50;
-            font-size: 28px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600}
+        .brand-mark{
+            width:24px;height:24px;border-radius:5px;background:var(--ink);
+            display:grid;place-items:center;color:var(--bg);
+            font-family:var(--mono);font-size:11px;font-weight:700;
         }
-
-        .header-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        .nav-tabs{display:flex;gap:2px}
+        .nav-tab{
+            padding:7px 12px;border-radius:5px;
+            font-size:13px;color:var(--ink-2);text-decoration:none;
+            display:inline-flex;align-items:center;gap:7px;
         }
-
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
+        .nav-tab:hover{background:var(--bg)}
+        .nav-tab.active{background:var(--ink);color:var(--surface)}
+        .nav-tab .ico{font-family:var(--mono);font-size:12px;opacity:.7}
+        .btn-logout{
+            padding:7px 12px;border-radius:5px;border:1px solid var(--line-2);
+            background:var(--surface);color:var(--ink-2);font-size:13px;cursor:pointer;font-family:inherit;
         }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        .btn-logout:hover{background:var(--bg);color:var(--ink)}
+        .container{max-width:1100px;margin:28px auto;padding:0 24px}
+        .page-head{margin-bottom:24px}
+        .page-head h1{font-size:26px;font-weight:600;letter-spacing:-0.015em;margin-bottom:4px}
+        .page-head .lede{color:var(--ink-2);font-size:14px}
+        .crumb{
+            font-family:var(--mono);font-size:11px;color:var(--ink-3);
+            text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;
         }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        .card{
+            background:var(--surface);border:1px solid var(--line);
+            border-radius:8px;margin-bottom:20px;overflow:hidden;
         }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        .card-head{
+            padding:14px 20px;border-bottom:1px solid var(--line);
+            display:flex;justify-content:space-between;align-items:center;
         }
-
-        .btn-secondary {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+        .card-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px}
+        .card-title .tag{
+            font-family:var(--mono);font-size:10px;color:var(--ink-3);
+            text-transform:uppercase;letter-spacing:0.08em;
+            padding:3px 7px;background:var(--bg);border-radius:4px;
         }
-
-        .btn-secondary:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
+        .card-body{padding:20px}
+        .btn{
+            padding:8px 14px;border-radius:5px;border:1px solid;
+            font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;
+            display:inline-flex;align-items:center;gap:6px;text-decoration:none;
         }
-
-        /* Container */
-        .container {
-            max-width: 1400px;
-            margin: 40px auto;
-            padding: 0 40px;
-        }
-
-        /* Upload Section */
-        .upload-section {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-bottom: 30px;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            color: #2c3e50;
-            font-size: 24px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-title i {
-            color: #667eea;
-        }
-
-        .btn-info {
-            background: #667eea15;
-            color: #667eea;
-            border: 2px solid #667eea;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-info:hover {
-            background: #667eea;
-            color: white;
-        }
-
+        .btn-ghost{background:var(--surface);color:var(--ink-2);border-color:var(--line-2)}
+        .btn-ghost:hover{background:var(--bg);color:var(--ink)}
+        .btn-primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+        .btn-primary:hover{opacity:.88}
         /* Drop Zone */
-        .drop-zone {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 60px 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-            margin-bottom: 25px;
+        .drop-zone{
+            border:1.5px dashed var(--line-2);border-radius:8px;
+            padding:48px 24px;text-align:center;cursor:pointer;
+            transition:all .2s;background:var(--bg);
         }
-
-        .drop-zone:hover, .drop-zone.drag-over {
-            border-color: #764ba2;
-            background: #667eea10;
-            transform: scale(1.02);
+        .drop-zone:hover, .drop-zone.drag-over{border-color:var(--accent);background:var(--accent-bg)}
+        .drop-icon{
+            width:44px;height:44px;border-radius:8px;
+            background:var(--surface);border:1px solid var(--line);
+            display:grid;place-items:center;margin:0 auto 14px;
+            font-family:var(--mono);font-size:14px;font-weight:600;color:var(--ink-2);
         }
-
-        .drop-zone i {
-            font-size: 4rem;
-            color: #667eea;
-            margin-bottom: 20px;
-            display: block;
+        .drop-zone h5{font-size:15px;font-weight:600;margin-bottom:4px}
+        .drop-zone p{font-size:13px;color:var(--ink-3)}
+        .file-info{
+            background:var(--success-bg);border:1px solid oklch(0.85 0.05 155);
+            border-radius:6px;padding:12px 14px;margin-top:16px;
+            display:none;align-items:center;gap:10px;font-size:13px;
         }
-
-        .drop-zone h5 {
-            color: #2c3e50;
-            font-weight: 700;
-            margin-bottom: 10px;
+        .file-info::before{content:"✓";color:var(--success);font-weight:700}
+        .btn-process{
+            width:100%;margin-top:16px;padding:11px;
+            background:var(--ink);color:var(--surface);border:1px solid var(--ink);
+            border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;
+            display:flex;align-items:center;justify-content:center;gap:8px;
         }
-
-        .drop-zone p {
-            color: #7f8c8d;
+        .btn-process:disabled{opacity:.4;cursor:not-allowed;background:var(--ink-3);border-color:var(--ink-3)}
+        /* Processing */
+        .processing-area, .result-area{
+            display:none;margin-top:18px;border-radius:6px;
+            padding:16px 18px;border:1px solid;
         }
-
-        /* File Info */
-        .file-info {
-            background: #e8f5e9;
-            border: 2px solid #4caf50;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            display: none;
+        .processing-area{background:var(--info-bg);border-color:oklch(0.85 0.06 230)}
+        .result-area{background:var(--success-bg);border-color:oklch(0.85 0.05 155)}
+        .processing-area h5, .result-area h5{
+            font-size:13px;font-weight:600;margin-bottom:10px;
+            text-transform:uppercase;letter-spacing:0.06em;font-family:var(--mono);
         }
-
-        .file-info i {
-            color: #4caf50;
-            font-size: 1.5rem;
-            margin-right: 10px;
+        .processing-area h5{color:var(--info)}
+        .result-area h5{color:var(--success)}
+        .progress-bar-wrap{
+            height:6px;background:var(--surface);border-radius:3px;overflow:hidden;
+            border:1px solid var(--line);
         }
-
-        .file-info span {
-            color: #2c3e50;
-            font-weight: 600;
+        .progress-bar{
+            height:100%;background:var(--ink);border-radius:3px;transition:width .3s;
         }
-
-        /* Processing Area */
-        .processing-area {
-            display: none;
-            background: #e3f2fd;
-            border: 2px solid #2196F3;
-            border-radius: 12px;
-            padding: 25px;
-            margin-top: 25px;
+        .progress-text{
+            margin-top:8px;font-size:12px;color:var(--ink-2);
         }
-
-        .processing-area h5 {
-            color: #2c3e50;
-            font-weight: 700;
-            margin-bottom: 15px;
+        .btn-download{
+            display:inline-flex;align-items:center;gap:8px;
+            padding:9px 14px;background:var(--success);color:#fff;
+            border-radius:5px;font-size:13px;font-weight:500;
+            text-decoration:none;margin-top:10px;border:1px solid var(--success);
         }
-
-        .progress-custom {
-            height: 30px;
-            border-radius: 15px;
-            overflow: hidden;
-            background: #bbdefb;
+        .btn-download:hover{opacity:.9}
+        /* Job cards */
+        .job-card{
+            padding:14px 18px;border-bottom:1px solid var(--line);
+            display:flex;justify-content:space-between;align-items:center;gap:14px;
         }
-
-        .progress-bar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-weight: 700;
-            font-size: 14px;
+        .job-card:last-child{border-bottom:none}
+        .job-card:hover{background:var(--bg)}
+        .job-info h6{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+        .job-info .meta{
+            font-family:var(--mono);font-size:11px;color:var(--ink-3);
+            text-transform:uppercase;letter-spacing:0.06em;
         }
-
-        /* Result Area */
-        .result-area {
-            display: none;
-            background: #e8f5e9;
-            border: 2px solid #4caf50;
-            border-radius: 12px;
-            padding: 25px;
-            margin-top: 25px;
+        .job-status{
+            display:inline-flex;align-items:center;gap:6px;
+            padding:3px 8px;border-radius:4px;border:1px solid;
+            font-family:var(--mono);font-size:10px;font-weight:500;
+            text-transform:uppercase;letter-spacing:0.08em;
         }
-
-        .result-area h5 {
-            color: #2c3e50;
-            font-weight: 700;
-            margin-bottom: 15px;
+        .job-status::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+        .job-status.completed{background:var(--success-bg);color:var(--success);border-color:oklch(0.85 0.05 155)}
+        .job-status.processing{background:var(--info-bg);color:var(--info);border-color:oklch(0.85 0.06 230)}
+        .job-status.pending{background:var(--warning-bg);color:var(--warning);border-color:oklch(0.85 0.06 75)}
+        .job-status.failed{background:var(--danger-bg);color:var(--danger);border-color:oklch(0.85 0.05 25)}
+        .empty-state{padding:48px 32px;text-align:center;color:var(--ink-3)}
+        .empty-state .empty-icon{
+            width:40px;height:40px;border-radius:8px;
+            background:var(--bg);border:1px solid var(--line);
+            display:grid;place-items:center;margin:0 auto 12px;
+            font-family:var(--mono);font-size:18px;
         }
-
-        .result-area i {
-            color: #4caf50;
-        }
-
-        .btn-download {
-            background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
-            color: white;
-            padding: 12px 30px;
-            border-radius: 10px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-            transition: all 0.3s;
-        }
-
-        .btn-download:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        }
-
-        /* Job Cards */
-        .job-card {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-
-        .job-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
-            border-color: #667eea;
-        }
-
-        .job-status {
-            display: inline-block;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .job-status.completed {
-            background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
-            color: white;
-        }
-
-        .job-status.processing {
-            background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
-            color: white;
-        }
-
-        .job-status.pending {
-            background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
-            color: white;
-        }
-
-        .job-status.failed {
-            background: linear-gradient(135deg, #f44336 0%, #e57373 100%);
-            color: white;
-        }
-
         /* Modal */
-        .modal-content {
-            border-radius: 16px;
-            border: none;
+        .modal-backdrop{
+            display:none;position:fixed;inset:0;background:oklch(0.22 0.02 260 / .5);
+            z-index:9999;align-items:center;justify-content:center;padding:24px;
         }
-
-        .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 16px 16px 0 0;
-            padding: 25px;
+        .modal-backdrop.show{display:flex}
+        .modal{
+            background:var(--surface);border:1px solid var(--line);
+            border-radius:10px;max-width:680px;width:100%;
+            max-height:85vh;overflow-y:auto;
         }
-
-        .modal-title {
-            font-weight: 700;
+        .modal-head{
+            padding:16px 20px;border-bottom:1px solid var(--line);
+            display:flex;justify-content:space-between;align-items:center;
         }
-
-        .modal-body {
-            padding: 30px;
+        .modal-head h3{font-size:15px;font-weight:600}
+        .modal-close{
+            background:none;border:none;font-size:20px;color:var(--ink-3);cursor:pointer;
+            width:28px;height:28px;border-radius:5px;
         }
-
-        .example-csv {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 20px;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            white-space: pre;
-            overflow-x: auto;
-            margin: 15px 0;
-            border-left: 4px solid #667eea;
+        .modal-close:hover{background:var(--bg);color:var(--ink)}
+        .modal-body{padding:20px}
+        .modal-body h4{font-size:13px;font-weight:600;margin-bottom:8px;
+            font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-2)}
+        .modal-body p{font-size:13px;color:var(--ink-2);margin-bottom:10px}
+        .code-block{
+            background:var(--ink);color:var(--bg);
+            padding:14px 16px;border-radius:6px;
+            font-family:var(--mono);font-size:12px;
+            white-space:pre;overflow-x:auto;margin-bottom:18px;
         }
-
-        .alert-custom {
-            border-radius: 12px;
-            border: none;
-            padding: 20px;
+        .code-block::before{
+            content:attr(data-label);
+            display:block;color:var(--ink-3);
+            font-size:10px;text-transform:uppercase;
+            letter-spacing:0.08em;margin-bottom:8px;
         }
-
-        .alert-custom i {
-            font-size: 1.2rem;
-            margin-right: 10px;
+        .modal-divider{height:1px;background:var(--line);margin:18px 0}
+        .info-list{
+            background:var(--bg);border:1px solid var(--line);
+            border-radius:6px;padding:12px 14px;
         }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 20px;
-            }
-            .header {
-                padding: 15px 20px;
-                flex-direction: column;
-                gap: 15px;
-            }
-            .header h1 {
-                font-size: 20px;
-            }
-            .nav-buttons {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            .section-header {
-                flex-direction: column;
-                gap: 15px;
-            }
+        .info-list h4{margin-bottom:8px}
+        .info-list ul{list-style:none}
+        .info-list li{
+            font-size:12px;color:var(--ink-2);padding-left:18px;
+            position:relative;line-height:1.6;
+        }
+        .info-list li::before{
+            content:"·";position:absolute;left:6px;color:var(--accent);font-weight:700;
+        }
+        @media(max-width:768px){
+            .nav-tabs{display:none}
+            .container{padding:0 16px}
+            .job-card{flex-direction:column;align-items:flex-start}
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <h1>
-            <div class="header-icon"><i class="fas fa-table"></i></div>
-            Consulta Masiva de Cobertura
-        </h1>
-        <div class="nav-buttons">
-            <a href="/cobertura/mapa/" class="btn btn-primary"><i class="fas fa-map-marked-alt"></i> Mapa</a>
-            <a href="/cobertura/dashboard/" class="btn btn-primary"><i class="fas fa-chart-line"></i> Dashboard</a>
-            <a href="/cobertura/upload/" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> Upload</a>
-            <a href="/cobertura/2fa/status/" class="btn btn-primary"><i class="fas fa-shield-alt"></i> Seguridad 2FA</a>
-            <button class="btn btn-secondary" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+    <div class="topbar">
+        <div class="brand"><div class="brand-mark">C</div>Cobertura ISP</div>
+        <div class="nav-tabs">
+            <a href="/cobertura/mapa/" class="nav-tab"><span class="ico">◉</span> Mapa</a>
+            <a href="/cobertura/dashboard/" class="nav-tab"><span class="ico">▭</span> Dashboard</a>
+            <a href="/cobertura/upload/" class="nav-tab"><span class="ico">↑</span> Upload</a>
+            <a href="/cobertura/bulk-query/" class="nav-tab active"><span class="ico">≡</span> CSV</a>
+            <a href="/cobertura/2fa/status/" class="nav-tab"><span class="ico">⚿</span> Seguridad</a>
         </div>
+        <button class="btn-logout" onclick="logout()">Salir →</button>
     </div>
 
-    <!-- Container -->
     <div class="container">
-        <!-- Upload Section -->
-        <div class="upload-section">
-            <div class="section-header">
-                <div class="section-title">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    Subir Archivo CSV
-                </div>
-                <button class="btn-info" onclick="document.getElementById('formatModal').style.display='block'">
-                    <i class="fas fa-question-circle"></i> Ver Formato CSV
-                </button>
-            </div>
-
-            <form id="uploadForm" enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                <div class="drop-zone" id="dropZone">
-                    <i class="fas fa-file-csv"></i>
-                    <h5>Arrastra tu archivo CSV aquí</h5>
-                    <p>o haz clic para seleccionar desde tu computadora</p>
-                    <input type="file" id="fileInput" name="archivo" accept=".csv" style="display: none;">
-                </div>
-
-                <div id="fileInfo" class="file-info">
-                    <i class="fas fa-check-circle"></i>
-                    <span id="fileName"></span>
-                    <span id="fileSize" style="color: #7f8c8d; margin-left: 10px;"></span>
-                </div>
-
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 16px;" id="submitBtn" disabled>
-                    <i class="fas fa-search"></i> Procesar Consulta
-                </button>
-            </form>
-
-            <!-- Processing -->
-            <div id="processingArea" class="processing-area">
-                <h5 id="processingTitle"><i class="fas fa-spinner fa-spin"></i> Procesando...</h5>
-                <div class="progress progress-custom">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                         id="progressBar" 
-                         style="width: 0%">
-                    </div>
-                </div>
-                <p style="margin-top: 15px; margin-bottom: 0; color: #2c3e50;" id="processingText"></p>
-            </div>
-
-            <!-- Result -->
-            <div id="resultArea" class="result-area">
-                <h5><i class="fas fa-check-circle"></i> ¡Procesamiento Completado!</h5>
-                <p id="resultText" style="color: #2c3e50; margin-bottom: 20px;"></p>
-                <a href="#" id="downloadLink" class="btn-download">
-                    <i class="fas fa-download"></i> Descargar Resultados CSV
-                </a>
-            </div>
-
-            <div id="messageContainer"></div>
+        <div class="page-head">
+            <div class="crumb">// Sección · Consulta masiva</div>
+            <h1>Consulta CSV de cobertura</h1>
+            <p class="lede">Carga un archivo CSV con coordenadas o direcciones para consultar la cobertura disponible en lote.</p>
         </div>
 
-        <!-- History Section -->
-        <div class="upload-section">
-            <div class="section-title" style="margin-bottom: 25px;">
-                <i class="fas fa-history"></i>
-                Historial de Consultas
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">
+                    <span class="tag">01</span>
+                    Subir CSV
+                </div>
+                <button class="btn btn-ghost" onclick="document.getElementById('formatModal').classList.add('show')">
+                    Ver formato CSV
+                </button>
             </div>
-            
+            <div class="card-body">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="drop-zone" id="dropZone">
+                        <div class="drop-icon">CSV</div>
+                        <h5>Arrastra tu archivo CSV aquí</h5>
+                        <p>o haz clic para seleccionar desde tu equipo</p>
+                        <input type="file" id="fileInput" name="archivo" accept=".csv" style="display:none">
+                    </div>
+
+                    <div id="fileInfo" class="file-info">
+                        <span id="fileName" style="font-weight:500"></span>
+                        <span id="fileSize" style="font-family:var(--mono);color:var(--ink-3);margin-left:auto;font-size:12px"></span>
+                    </div>
+
+                    <button type="submit" class="btn-process" id="submitBtn" disabled>
+                        <span>Procesar consulta</span>
+                        <span style="font-family:var(--mono)">→</span>
+                    </button>
+                </form>
+
+                <div id="processingArea" class="processing-area">
+                    <h5 id="processingTitle">// Procesando</h5>
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+                    </div>
+                    <p class="progress-text" id="processingText">Subiendo archivo...</p>
+                </div>
+
+                <div id="resultArea" class="result-area">
+                    <h5>// Procesamiento completado</h5>
+                    <p id="resultText" style="font-size:13px;color:var(--ink-2)"></p>
+                    <a href="#" id="downloadLink" class="btn-download">
+                        Descargar resultados CSV
+                        <span style="font-family:var(--mono)">↓</span>
+                    </a>
+                </div>
+
+                <div id="messageContainer"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">
+                    <span class="tag">02</span>
+                    Historial de consultas
+                </div>
+            </div>
             {% if jobs_recientes %}
                 {% for job in jobs_recientes %}
                 <div class="job-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h6 style="color: #2c3e50; font-weight: 700; margin-bottom: 8px;">
-                                Consulta #{{ job.id }}
-                                <span class="job-status {{ job.status }}">
-                                    {% if job.status == 'completed' %}Completado
-                                    {% elif job.status == 'processing' %}Procesando
-                                    {% elif job.status == 'pending' %}Pendiente
-                                    {% else %}Fallido{% endif %}
-                                </span>
-                            </h6>
-                            <small style="color: #7f8c8d;">
-                                <i class="fas fa-calendar"></i> {{ job.fecha_creacion|date:"d/m/Y H:i" }} - 
-                                <i class="fas fa-database"></i> {{ job.total_registros }} registros
-                            </small>
+                    <div class="job-info">
+                        <h6>
+                            Consulta #{{ job.id }}
+                            <span class="job-status {{ job.status }}">
+                                {% if job.status == 'completed' %}Completado
+                                {% elif job.status == 'processing' %}Procesando
+                                {% elif job.status == 'pending' %}Pendiente
+                                {% else %}Fallido{% endif %}
+                            </span>
+                        </h6>
+                        <div class="meta">{{ job.fecha_creacion|date:"d/m/Y H:i" }} · {{ job.total_registros }} registros</div>
+                    </div>
+                    <div>
+                        {% if job.status == 'completed' and job.archivo_salida %}
+                        <a href="{{ job.archivo_salida.url }}" class="btn btn-primary" download>
+                            Descargar <span style="font-family:var(--mono)">↓</span>
+                        </a>
+                        {% elif job.status == 'processing' %}
+                        <div style="width:160px">
+                            <div class="progress-bar-wrap"><div class="progress-bar" style="width:{{ job.progreso_porcentaje }}%"></div></div>
+                            <div style="font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-top:4px;text-align:right">{{ job.progreso_porcentaje }}%</div>
                         </div>
-                        <div>
-                            {% if job.status == 'completed' and job.archivo_salida %}
-                            <a href="{{ job.archivo_salida.url }}" class="btn btn-primary" download>
-                                <i class="fas fa-download"></i> Descargar
-                            </a>
-                            {% elif job.status == 'processing' %}
-                            <div class="progress" style="width: 200px; height: 25px;">
-                                <div class="progress-bar" style="width: {{ job.progreso_porcentaje }}%">
-                                    {{ job.progreso_porcentaje }}%
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <p style="text-align: center; color: #95a5a6; padding: 40px 0;">
-                    <i class="fas fa-inbox" style="font-size: 48px; display: block; margin-bottom: 15px;"></i>
-                    No hay consultas previas
-                </p>
+                <div class="empty-state">
+                    <div class="empty-icon">∅</div>
+                    <p style="font-size:13px">No hay consultas previas</p>
+                </div>
             {% endif %}
         </div>
     </div>
 
     <!-- Modal -->
-    <div id="formatModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;" onclick="if(event.target === this) this.style.display='none'">
-        <div class="modal-content" style="max-width: 800px; width: 90%;" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-info-circle"></i> Formato de Archivo CSV</h5>
-                <button type="button" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; cursor: pointer; padding: 5px 15px; border-radius: 5px;" onclick="document.getElementById('formatModal').style.display='none'">×</button>
+    <div id="formatModal" class="modal-backdrop" onclick="if(event.target === this) this.classList.remove('show')">
+        <div class="modal">
+            <div class="modal-head">
+                <h3>Formato del archivo CSV</h3>
+                <button class="modal-close" onclick="document.getElementById('formatModal').classList.remove('show')">×</button>
             </div>
             <div class="modal-body">
-                <h6 style="color: #2c3e50; font-weight: 700;">Opción 1: Coordenadas</h6>
-                <p style="color: #7f8c8d;">CSV con columnas <code>latitud,longitud</code> (acepta coma o punto decimal):</p>
-                <div class="example-csv">latitud,longitud
+                <h4>Opción 1 · Coordenadas</h4>
+                <p>CSV con columnas <code style="font-family:var(--mono);background:var(--bg);padding:2px 6px;border-radius:3px;font-size:12px">latitud,longitud</code> (acepta coma o punto decimal):</p>
+                <div class="code-block" data-label="ejemplo.csv">latitud,longitud
 6.2442,-75.5812
 6,2442,-75,5812
 6.1701,-75.6058</div>
 
-                <hr style="margin: 25px 0;">
+                <div class="modal-divider"></div>
 
-                <h6 style="color: #2c3e50; font-weight: 700;">Opción 2: Direcciones</h6>
-                <p style="color: #7f8c8d;">CSV con columna <code>direccion</code>:</p>
-                <div class="example-csv">direccion
+                <h4>Opción 2 · Direcciones</h4>
+                <p>CSV con columna <code style="font-family:var(--mono);background:var(--bg);padding:2px 6px;border-radius:3px;font-size:12px">direccion</code>:</p>
+                <div class="code-block" data-label="ejemplo.csv">direccion
 Calle 10 # 45-23, Medellín
 Carrera 50 # 12-34, Envigado
 Avenida El Poblado, Medellín</div>
 
-                <hr style="margin: 25px 0;">
-
-                <div class="alert-custom" style="background: #e3f2fd; color: #1976d2;">
-                    <strong><i class="fas fa-lightbulb"></i> Notas importantes:</strong>
-                    <ul style="margin: 10px 0 0 20px;">
+                <div class="info-list">
+                    <h4>Notas importantes</h4>
+                    <ul>
                         <li>El archivo debe estar en formato CSV</li>
-                        <li>Máximo 10MB de tamaño</li>
+                        <li>Máximo 10 MB de tamaño</li>
                         <li>Las coordenadas pueden usar coma (,) o punto (.) como decimal</li>
                         <li>Procesamiento síncrono para menos de 500 registros</li>
                         <li>Procesamiento asíncrono (con notificación) para 500+ registros</li>
@@ -563,28 +403,14 @@ const processingArea = document.getElementById('processingArea');
 const resultArea = document.getElementById('resultArea');
 const messageContainer = document.getElementById('messageContainer');
 
-// Drag & Drop
 dropZone.addEventListener('click', () => fileInput.click());
-
-dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.classList.add('drag-over');
-});
-
-dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('drag-over');
-});
-
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
+    e.preventDefault(); dropZone.classList.remove('drag-over');
     const files = e.dataTransfer.files;
-    if (files.length > 0) {
-        fileInput.files = files;
-        handleFileSelect();
-    }
+    if (files.length > 0) { fileInput.files = files; handleFileSelect(); }
 });
-
 fileInput.addEventListener('change', handleFileSelect);
 
 function handleFileSelect() {
@@ -592,44 +418,35 @@ function handleFileSelect() {
     if (file) {
         if (!file.name.toLowerCase().endsWith('.csv')) {
             showMessage('Solo se permiten archivos CSV', 'danger');
-            fileInput.value = '';
-            return;
+            fileInput.value = ''; return;
         }
-
         if (file.size > 10 * 1024 * 1024) {
             showMessage('El archivo es muy grande (máximo 10MB)', 'danger');
-            fileInput.value = '';
-            return;
+            fileInput.value = ''; return;
         }
-
         fileName.textContent = file.name;
-        fileSize.textContent = `(${(file.size / 1024).toFixed(2)} KB)`;
-        fileInfo.style.display = 'block';
+        fileSize.textContent = `${(file.size / 1024).toFixed(2)} KB`;
+        fileInfo.style.display = 'flex';
         submitBtn.disabled = false;
     }
 }
 
 uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const file = fileInput.files[0];
     if (!file) return;
-
     const formData = new FormData(uploadForm);
 
     submitBtn.disabled = true;
     processingArea.style.display = 'block';
     resultArea.style.display = 'none';
-    
     document.getElementById('processingText').textContent = 'Subiendo y analizando archivo...';
     document.getElementById('progressBar').style.width = '30%';
 
     try {
         const response = await fetch('/cobertura/api/bulk-query/upload/', {
-            method: 'POST',
-            body: formData
+            method: 'POST', body: formData
         });
-
         const data = await response.json();
 
         if (response.ok) {
@@ -637,17 +454,15 @@ uploadForm.addEventListener('submit', async (e) => {
                 document.getElementById('progressBar').style.width = '100%';
                 processingArea.style.display = 'none';
                 resultArea.style.display = 'block';
-                
-                document.getElementById('resultText').textContent = 
+                document.getElementById('resultText').textContent =
                     `Se procesaron ${data.total_registros} registros exitosamente.`;
                 document.getElementById('downloadLink').href = data.archivo_salida_url;
-                
                 setTimeout(() => location.reload(), 5000);
             } else {
                 showMessage(
-                    `📊 Archivo en cola de procesamiento<br>` +
-                    `<strong>Total de registros:</strong> ${data.total_registros}<br>` +
-                    `<strong>Tiempo estimado:</strong> ${data.tiempo_estimado_minutos} minutos<br>` +
+                    `Archivo en cola de procesamiento.<br>` +
+                    `<strong>Total registros:</strong> ${data.total_registros}<br>` +
+                    `<strong>Tiempo estimado:</strong> ${data.tiempo_estimado_minutos} minutos.<br>` +
                     `Recibirás una notificación cuando esté listo.`,
                     'info'
                 );
@@ -655,51 +470,33 @@ uploadForm.addEventListener('submit', async (e) => {
                 setTimeout(() => location.reload(), 3000);
             }
         } else {
-            showMessage(`❌ Error: ${data.error}`, 'danger');
+            showMessage(`Error: ${data.error}`, 'danger');
             processingArea.style.display = 'none';
             submitBtn.disabled = false;
         }
     } catch (error) {
         console.error(error);
-        showMessage('❌ Error de conexión', 'danger');
+        showMessage('Error de conexión', 'danger');
         processingArea.style.display = 'none';
         submitBtn.disabled = false;
     }
 });
 
 function showMessage(message, type) {
-    const bgColors = {
-        'danger': '#f8d7da',
-        'info': '#d1ecf1',
-        'success': '#d4edda'
+    const colors = {
+        danger: { bg: 'var(--danger-bg)', border: 'oklch(0.85 0.05 25)', text: 'var(--danger)' },
+        info:   { bg: 'var(--info-bg)',   border: 'oklch(0.85 0.06 230)', text: 'var(--info)' },
+        success:{ bg: 'var(--success-bg)', border: 'oklch(0.85 0.05 155)', text: 'var(--success)' }
     };
-    const borderColors = {
-        'danger': '#f44336',
-        'info': '#2196F3',
-        'success': '#4caf50'
-    };
-    
+    const c = colors[type] || colors.info;
     messageContainer.innerHTML = `
-        <div class="alert-custom" style="background: ${bgColors[type]}; border-left: 4px solid ${borderColors[type]}; margin-top: 20px;">
+        <div style="background:${c.bg};border:1px solid ${c.border};color:${c.text};border-radius:6px;padding:12px 14px;margin-top:14px;font-size:13px">
             ${message}
-        </div>
-    `;
-    
-    setTimeout(() => {
-        messageContainer.innerHTML = '';
-    }, 5000);
+        </div>`;
+    setTimeout(() => { messageContainer.innerHTML = ''; }, 8000);
 }
 
-function logout() {
-    window.location.href = '/cobertura/logout/';
-}
-
-// Mostrar modal
-document.getElementById('formatModal').onclick = function(e) {
-    if (e.target === this) {
-        this.style.display = 'none';
-    }
-}
+function logout() { window.location.href = '/cobertura/logout/'; }
 </script>
 </body>
 </html>

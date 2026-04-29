@@ -3,30 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error - Portal ISP</title>
+    <title>Acceso denegado · Portal ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        :root{
+            --bg: oklch(0.985 0.004 260);
+            --surface:#fff;
+            --ink: oklch(0.22 0.02 260);
+            --ink-2: oklch(0.45 0.015 260);
+            --ink-3: oklch(0.62 0.012 260);
+            --line: oklch(0.92 0.008 260);
+            --danger: oklch(0.55 0.18 25);
+            --danger-bg: oklch(0.97 0.025 25);
+            --mono:'JetBrains Mono',ui-monospace,monospace;
         }
-        .error-container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
-            text-align: center;
+        body{
+            font-family:'Inter',system-ui,sans-serif !important;
+            background:var(--bg);color:var(--ink);
+            min-height:100vh;display:grid;place-items:center;padding:24px;
+            -webkit-font-smoothing:antialiased;
+        }
+        .error-container{
+            background:var(--surface);
+            border:1px solid var(--line);
+            border-top:3px solid var(--danger);
+            border-radius:8px;
+            padding:36px 32px;
+            max-width:440px;width:100%;
+            text-align:left;
+        }
+        .err-tag{
+            display:inline-block;
+            padding:4px 8px;border-radius:4px;
+            background:var(--danger-bg);color:var(--danger);
+            font-family:var(--mono);font-size:11px;font-weight:500;
+            text-transform:uppercase;letter-spacing:0.08em;
+            margin-bottom:14px;
+            border:1px solid oklch(0.85 0.05 25);
+        }
+        h2{font-size:22px;font-weight:600;letter-spacing:-0.015em;margin-bottom:8px}
+        .desc{color:var(--ink-2);font-size:14px;line-height:1.5;margin-bottom:18px}
+        .err-detail{
+            background:var(--bg);border:1px solid var(--line);
+            border-radius:6px;padding:12px 14px;
+            font-family:var(--mono);font-size:12px;
+            color:var(--ink-2);
         }
     </style>
 </head>
 <body>
     <div class="error-container">
-        <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
-        <h2>Acceso Denegado</h2>
-        <p class="text-muted">{{ error }}</p>
+        <span class="err-tag">Error · 403</span>
+        <h2>Acceso denegado</h2>
+        <p class="desc">No se pudo verificar tu acceso al portal. Si crees que esto es un error, contacta al administrador del sistema.</p>
+        <div class="err-detail">{{ error }}</div>
     </div>
 </body>
 </html>

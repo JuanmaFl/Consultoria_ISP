@@ -3,184 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estado 2FA - Sistema ISP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Seguridad · Cobertura ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        :root{
+            --bg: oklch(0.985 0.004 260);
+            --surface:#fff;
+            --ink: oklch(0.22 0.02 260);
+            --ink-2: oklch(0.45 0.015 260);
+            --ink-3: oklch(0.62 0.012 260);
+            --line: oklch(0.92 0.008 260);
+            --line-2: oklch(0.86 0.01 260);
+            --accent: oklch(0.52 0.16 248);
+            --accent-bg: oklch(0.97 0.02 248);
+            --success: oklch(0.55 0.14 155);
+            --success-bg: oklch(0.96 0.04 155);
+            --warning: oklch(0.62 0.14 75);
+            --warning-bg: oklch(0.97 0.04 75);
+            --danger: oklch(0.55 0.18 25);
+            --danger-bg: oklch(0.97 0.025 25);
+            --mono:'JetBrains Mono',ui-monospace,monospace;
         }
-        .header {
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 40px;
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Inter',system-ui,sans-serif;
+            background:var(--bg);color:var(--ink);
+            min-height:100vh;
+            -webkit-font-smoothing:antialiased;
         }
-        .header h1 {
-            color: #2c3e50;
-            font-size: 24px;
-            font-weight: 700;
+        .topbar{
+            background:var(--surface);
+            border-bottom:1px solid var(--line);
+            padding:14px 28px;
+            display:flex;justify-content:space-between;align-items:center;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        .brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600}
+        .brand-mark{
+            width:24px;height:24px;border-radius:5px;background:var(--ink);
+            display:grid;place-items:center;color:var(--bg);
+            font-family:var(--mono);font-size:11px;font-weight:700;
         }
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-bottom: 30px;
+        .breadcrumb{
+            font-family:var(--mono);font-size:11px;color:var(--ink-3);
+            text-transform:uppercase;letter-spacing:0.08em;
         }
-        .card-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .breadcrumb a{color:var(--ink-3);text-decoration:none}
+        .breadcrumb a:hover{color:var(--ink)}
+        .container{max-width:760px;margin:32px auto;padding:0 28px}
+        .page-head{margin-bottom:24px}
+        .page-head h1{font-size:26px;font-weight:600;letter-spacing:-0.015em;margin-bottom:6px}
+        .page-head p{color:var(--ink-2);font-size:14px}
+        .card{
+            background:var(--surface);
+            border:1px solid var(--line);
+            border-radius:8px;
+            overflow:hidden;
         }
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
+        .card-head{
+            padding:18px 22px;
+            border-bottom:1px solid var(--line);
+            display:flex;justify-content:space-between;align-items:center;
         }
-        .status-active {
-            background: #d4edda;
-            color: #155724;
+        .card-title{font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px}
+        .card-body{padding:22px}
+        .status-row{
+            display:flex;justify-content:space-between;align-items:center;
+            padding:14px 0;border-bottom:1px solid var(--line);
         }
-        .status-inactive {
-            background: #fff3cd;
-            color: #856404;
+        .status-row:last-child{border-bottom:none}
+        .status-row .label{
+            font-family:var(--mono);font-size:11px;
+            text-transform:uppercase;letter-spacing:0.08em;
+            color:var(--ink-3);
         }
-        .btn {
-            padding: 14px 28px;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
+        .status-row .value{font-size:14px;font-weight:500;color:var(--ink)}
+        .badge{
+            display:inline-flex;align-items:center;gap:6px;
+            padding:4px 10px;border-radius:4px;
+            font-family:var(--mono);font-size:11px;font-weight:500;
+            text-transform:uppercase;letter-spacing:0.06em;
+            border:1px solid;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        .badge::before{
+            content:"";width:6px;height:6px;border-radius:50%;
+            background:currentColor;
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        .badge-active{background:var(--success-bg);color:var(--success);border-color:oklch(0.85 0.05 155)}
+        .badge-inactive{background:var(--warning-bg);color:var(--warning);border-color:oklch(0.85 0.06 75)}
+        .actions{
+            display:flex;gap:10px;margin-top:20px;
+            padding-top:20px;border-top:1px solid var(--line);
         }
-        .btn-danger {
-            background: #dc3545;
-            color: white;
+        .btn{
+            padding:10px 16px;border-radius:6px;
+            font-size:13px;font-weight:500;font-family:inherit;
+            cursor:pointer;border:1px solid;
+            display:inline-flex;align-items:center;gap:8px;
+            text-decoration:none;
         }
-        .btn-danger:hover {
-            background: #c82333;
-            transform: translateY(-2px);
+        .btn-primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+        .btn-primary:hover{opacity:.88}
+        .btn-danger{background:var(--surface);color:var(--danger);border-color:oklch(0.85 0.05 25)}
+        .btn-danger:hover{background:var(--danger-bg)}
+        .btn-ghost{background:var(--surface);color:var(--ink-2);border-color:var(--line-2)}
+        .btn-ghost:hover{background:var(--bg)}
+        .info-box{
+            background:var(--accent-bg);
+            border:1px solid oklch(0.88 0.04 248);
+            border-radius:6px;
+            padding:14px 16px;
+            margin-bottom:20px;
         }
-        .info-section {
-            margin: 30px 0;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
+        .info-box .info-title{
+            font-size:13px;font-weight:600;
+            color:oklch(0.4 0.16 248);margin-bottom:4px;
         }
-        .info-section p {
-            color: #2c3e50;
-            line-height: 1.6;
-            margin-bottom: 10px;
-        }
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            margin-top: 20px;
-        }
-        .back-link:hover {
-            text-decoration: underline;
+        .info-box p{
+            font-size:13px;color:oklch(0.4 0.16 248 / .9);line-height:1.5;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>
-            <i class="fas fa-shield-alt"></i>
-            Seguridad de la Cuenta
-        </h1>
+    <div class="topbar">
+        <div class="brand"><div class="brand-mark">C</div>Cobertura ISP</div>
+        <div class="breadcrumb"><a href="/cobertura/mapa/">Inicio</a> / Seguridad</div>
     </div>
 
     <div class="container">
+        <div class="page-head">
+            <h1>Seguridad de la cuenta</h1>
+            <p>Configura los métodos de autenticación que protegen tu acceso al sistema.</p>
+        </div>
+
         <div class="card">
-            <h2 class="card-title">
-                <i class="fas fa-lock"></i>
-                Autenticación de Dos Factores (2FA)
-            </h2>
-
-            {% if has_2fa %}
-                <div style="margin-bottom: 30px;">
-                    <span class="status-badge status-active">
-                        <i class="fas fa-check-circle"></i>
-                        Activo
-                    </span>
+            <div class="card-head">
+                <div class="card-title">
+                    <span style="font-family:var(--mono);font-size:12px;color:var(--ink-3)">2FA</span>
+                    Autenticación de dos factores
                 </div>
+                {% if has_2fa %}
+                    <span class="badge badge-active">Activo</span>
+                {% else %}
+                    <span class="badge badge-inactive">Inactivo</span>
+                {% endif %}
+            </div>
 
-                <div class="info-section">
-                    <p><strong>Tu cuenta está protegida con 2FA</strong></p>
-                    <p>Se requerirá un código de verificación cada vez que inicies sesión desde un nuevo dispositivo.</p>
-                    <p><strong>Dispositivo:</strong> {{ device.name }}</p>
+            <div class="card-body">
+                {% if has_2fa %}
+                    <div class="info-box">
+                        <div class="info-title">Tu cuenta está protegida</div>
+                        <p>Se requerirá un código de verificación cada vez que inicies sesión.</p>
+                    </div>
+
+                    <div class="status-row">
+                        <span class="label">Dispositivo</span>
+                        <span class="value">{{ device.name }}</span>
+                    </div>
                     {% if device.confirmed_at %}
-                    <p><strong>Configurado:</strong> {{ device.confirmed_at|date:"d/m/Y H:i" }}</p>
+                    <div class="status-row">
+                        <span class="label">Configurado</span>
+                        <span class="value" style="font-family:var(--mono);font-size:13px">{{ device.confirmed_at|date:"d/m/Y H:i" }}</span>
+                    </div>
                     {% endif %}
-                </div>
+                    <div class="status-row">
+                        <span class="label">Estado</span>
+                        <span class="value">Verificación TOTP de 6 dígitos</span>
+                    </div>
 
-                <button onclick="disablePrompt()" class="btn btn-danger">
-                    <i class="fas fa-times-circle"></i>
-                    Desactivar 2FA
-                </button>
-            {% else %}
-                <div style="margin-bottom: 30px;">
-                    <span class="status-badge status-inactive">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Inactivo
-                    </span>
-                </div>
+                    <div class="actions">
+                        <button onclick="disablePrompt()" class="btn btn-danger">
+                            Desactivar 2FA
+                        </button>
+                        <a href="/cobertura/mapa/" class="btn btn-ghost">← Volver al mapa</a>
+                    </div>
+                {% else %}
+                    <div class="info-box">
+                        <div class="info-title">¿Por qué activar 2FA?</div>
+                        <p>La autenticación de dos factores agrega una capa adicional de seguridad. Incluso si alguien obtiene tu contraseña, no podrá acceder sin el código de tu teléfono.</p>
+                    </div>
 
-                <div class="info-section">
-                    <p><strong>¿Por qué activar 2FA?</strong></p>
-                    <p>La autenticación de dos factores agrega una capa adicional de seguridad a tu cuenta. Incluso si alguien obtiene tu contraseña, no podrá acceder sin el código de tu teléfono.</p>
-                </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+                        <div style="padding:14px;border:1px solid var(--line);border-radius:6px">
+                            <div style="font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">01</div>
+                            <div style="font-size:13px;font-weight:500">Instala una app autenticadora</div>
+                        </div>
+                        <div style="padding:14px;border:1px solid var(--line);border-radius:6px">
+                            <div style="font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">02</div>
+                            <div style="font-size:13px;font-weight:500">Escanea el código QR</div>
+                        </div>
+                        <div style="padding:14px;border:1px solid var(--line);border-radius:6px">
+                            <div style="font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">03</div>
+                            <div style="font-size:13px;font-weight:500">Verifica con un código de 6 dígitos</div>
+                        </div>
+                    </div>
 
-                <a href="/cobertura/2fa/setup/" class="btn btn-primary">
-                    <i class="fas fa-shield-alt"></i>
-                    Activar 2FA Ahora
-                </a>
-            {% endif %}
-
-            <a href="/cobertura/mapa/" class="back-link">
-                <i class="fas fa-arrow-left"></i>
-                Volver al mapa
-            </a>
+                    <div class="actions">
+                        <a href="/cobertura/2fa/setup/" class="btn btn-primary">
+                            Activar 2FA
+                            <span style="font-family:var(--mono)">→</span>
+                        </a>
+                        <a href="/cobertura/mapa/" class="btn btn-ghost">← Volver al mapa</a>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
@@ -201,9 +226,7 @@
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
                     },
-                    body: JSON.stringify({
-                        code: code
-                    })
+                    body: JSON.stringify({ code: code })
                 });
 
                 const data = await response.json();

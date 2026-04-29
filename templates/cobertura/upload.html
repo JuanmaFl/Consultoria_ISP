@@ -3,738 +3,479 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload KMZ - Sistema de Cobertura ISP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Cargar KMZ · Cobertura ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root{
+            --bg: oklch(0.985 0.004 260);
+            --surface:#fff;
+            --ink: oklch(0.22 0.02 260);
+            --ink-2: oklch(0.45 0.015 260);
+            --ink-3: oklch(0.62 0.012 260);
+            --line: oklch(0.92 0.008 260);
+            --line-2: oklch(0.86 0.01 260);
+            --accent: oklch(0.52 0.16 248);
+            --accent-bg: oklch(0.97 0.02 248);
+            --success: oklch(0.55 0.14 155);
+            --success-bg: oklch(0.96 0.04 155);
+            --warning: oklch(0.62 0.14 75);
+            --danger: oklch(0.55 0.18 25);
+            --danger-bg: oklch(0.97 0.025 25);
+            --mono:'JetBrains Mono',ui-monospace,monospace;
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Inter',system-ui,sans-serif;
+            background:var(--bg);color:var(--ink);
+            min-height:100vh;-webkit-font-smoothing:antialiased;
         }
-
-        /* Header */
-        .header {
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        /* Topbar */
+        .topbar{
+            background:var(--surface);border-bottom:1px solid var(--line);
+            padding:12px 24px;display:flex;justify-content:space-between;align-items:center;
+            position:sticky;top:0;z-index:50;
         }
-
-        .header h1 {
-            color: #2c3e50;
-            font-size: 28px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600}
+        .brand-mark{
+            width:24px;height:24px;border-radius:5px;background:var(--ink);
+            display:grid;place-items:center;color:var(--bg);
+            font-family:var(--mono);font-size:11px;font-weight:700;
         }
-
-        .header-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        .nav-tabs{display:flex;gap:2px}
+        .nav-tab{
+            padding:7px 12px;border-radius:5px;
+            font-size:13px;color:var(--ink-2);text-decoration:none;
+            display:inline-flex;align-items:center;gap:7px;
+            transition:background .15s;
         }
-
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
+        .nav-tab:hover{background:var(--bg)}
+        .nav-tab.active{background:var(--ink);color:var(--surface)}
+        .nav-tab .ico{font-family:var(--mono);font-size:12px;opacity:.7}
+        .btn-logout{
+            padding:7px 12px;border-radius:5px;border:1px solid var(--line-2);
+            background:var(--surface);color:var(--ink-2);font-size:13px;
+            cursor:pointer;font-family:inherit;
         }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        .btn-logout:hover{background:var(--bg);color:var(--ink)}
+        /* Layout */
+        .container{max-width:980px;margin:28px auto;padding:0 24px}
+        .page-head{margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}
+        .page-head h1{font-size:26px;font-weight:600;letter-spacing:-0.015em;margin-bottom:4px}
+        .page-head .lede{color:var(--ink-2);font-size:14px}
+        .crumb{
+            font-family:var(--mono);font-size:11px;color:var(--ink-3);
+            text-transform:uppercase;letter-spacing:0.08em;
         }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        .card{
+            background:var(--surface);border:1px solid var(--line);
+            border-radius:8px;margin-bottom:20px;overflow:hidden;
         }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        .card-head{
+            padding:14px 20px;border-bottom:1px solid var(--line);
+            display:flex;justify-content:space-between;align-items:center;
         }
-
-        .btn-secondary {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+        .card-title{
+            font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;
         }
-
-        .btn-secondary:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
+        .card-title .tag{
+            font-family:var(--mono);font-size:10px;color:var(--ink-3);
+            text-transform:uppercase;letter-spacing:0.08em;
+            padding:3px 7px;background:var(--bg);border-radius:4px;
         }
-
-        /* Main Container */
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 40px;
+        .card-body{padding:20px}
+        /* Instructions */
+        .instructions{
+            background:var(--bg);border:1px solid var(--line);
+            border-radius:6px;padding:14px 16px;margin-bottom:20px;
         }
-
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-bottom: 30px;
+        .instructions h3{
+            font-size:12px;font-weight:600;font-family:var(--mono);
+            text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-2);
+            margin-bottom:10px;
         }
-
-        .card-title {
-            color: #2c3e50;
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .instructions ul{list-style:none;padding:0;display:grid;gap:6px}
+        .instructions li{
+            font-size:13px;color:var(--ink-2);
+            padding-left:18px;position:relative;line-height:1.5;
         }
-
-        .card-title i {
-            color: #667eea;
+        .instructions li::before{
+            content:"→";position:absolute;left:0;color:var(--accent);
+            font-family:var(--mono);
         }
-
-        .card-subtitle {
-            color: #7f8c8d;
-            font-size: 16px;
-            margin-bottom: 30px;
+        .instructions code{
+            background:var(--ink);color:var(--bg);
+            padding:1px 6px;border-radius:3px;
+            font-family:var(--mono);font-size:11px;
         }
-
-        /* Instructions Box */
-        .instructions-box {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-
-        .instructions-box h3 {
-            color: #2c3e50;
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .instructions-box ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .instructions-box li {
-            color: #2c3e50;
-            font-size: 14px;
-            margin-bottom: 10px;
-            padding-left: 25px;
-            position: relative;
-        }
-
-        .instructions-box li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #667eea;
-            font-weight: bold;
-        }
-
-        .instructions-box code {
-            background: #e9ecef;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-        }
-
         /* Drop Zone */
-        .drop-zone {
-            border: 3px dashed #d1d5db;
-            border-radius: 16px;
-            padding: 60px 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #f8f9fa;
+        .drop-zone{
+            border:1.5px dashed var(--line-2);border-radius:8px;
+            padding:48px 24px;text-align:center;cursor:pointer;
+            transition:all .2s;background:var(--bg);
         }
-
-        .drop-zone:hover,
-        .drop-zone.dragover {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
-            transform: scale(1.02);
+        .drop-zone:hover, .drop-zone.dragover{
+            border-color:var(--accent);background:var(--accent-bg);
         }
-
-        .drop-zone-icon {
-            font-size: 64px;
-            color: #d1d5db;
-            margin-bottom: 20px;
-            transition: all 0.3s;
+        .drop-icon{
+            width:44px;height:44px;border-radius:8px;
+            background:var(--surface);border:1px solid var(--line);
+            display:grid;place-items:center;margin:0 auto 14px;
+            font-family:var(--mono);font-size:20px;color:var(--ink-2);
         }
-
-        .drop-zone:hover .drop-zone-icon {
-            color: #667eea;
-            transform: scale(1.1);
+        .drop-zone-title{font-size:15px;font-weight:600;margin-bottom:4px}
+        .drop-zone-subtitle{font-size:13px;color:var(--ink-3);margin-bottom:16px}
+        .btn-select-file{
+            background:var(--ink);color:var(--surface);
+            padding:8px 16px;border:1px solid var(--ink);
+            border-radius:5px;font-size:13px;font-weight:500;
+            cursor:pointer;font-family:inherit;
+            display:inline-flex;align-items:center;gap:6px;
         }
-
-        .drop-zone-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .drop-zone-subtitle {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-bottom: 20px;
-        }
-
-        .btn-select-file {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 14px 32px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-select-file:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
+        .btn-select-file:hover{opacity:.88}
         /* File Preview */
-        .file-preview {
-            display: none;
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 30px;
+        .file-preview{
+            display:none;background:var(--surface);
+            border:1px solid var(--line);border-radius:6px;
+            padding:14px 16px;margin-top:16px;
+            align-items:center;justify-content:space-between;gap:14px;
         }
-
-        .file-preview.show {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            animation: slideIn 0.3s;
+        .file-preview.show{display:flex}
+        .file-preview-content{display:flex;align-items:center;gap:14px;flex:1;min-width:0}
+        .file-icon{
+            width:36px;height:36px;border-radius:6px;
+            background:var(--accent-bg);color:var(--accent);
+            display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:600;
+            flex-shrink:0;
         }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .file-info{flex:1;min-width:0}
+        .file-info h4{
+            font-size:14px;font-weight:600;margin-bottom:2px;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
         }
-
-        .file-preview-content {
-            display: flex;
-            align-items: center;
-            gap: 20px;
+        .file-info p{
+            font-size:12px;color:var(--ink-3);font-family:var(--mono);
         }
-
-        .file-icon {
-            font-size: 48px;
-            color: #667eea;
+        .file-provider{color:var(--accent) !important}
+        .btn-remove{
+            background:var(--surface);color:var(--ink-3);
+            border:1px solid var(--line-2);width:30px;height:30px;
+            border-radius:5px;font-size:14px;cursor:pointer;
+            display:grid;place-items:center;flex-shrink:0;
         }
-
-        .file-info h4 {
-            color: #2c3e50;
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .file-info p {
-            color: #7f8c8d;
-            font-size: 13px;
-            margin: 2px 0;
-        }
-
-        .file-provider {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .btn-remove {
-            background: white;
-            color: #e74c3c;
-            border: 2px solid #e74c3c;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-remove:hover {
-            background: #e74c3c;
-            color: white;
-            transform: rotate(90deg);
-        }
-
+        .btn-remove:hover{color:var(--danger);border-color:oklch(0.85 0.05 25)}
         /* Upload Button */
-        .btn-upload {
-            width: 100%;
-            margin-top: 20px;
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white;
-            padding: 16px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+        .btn-upload{
+            width:100%;margin-top:16px;
+            background:var(--ink);color:var(--surface);
+            padding:11px;border:1px solid var(--ink);
+            border-radius:6px;font-size:14px;font-weight:500;
+            cursor:pointer;font-family:inherit;
+            display:none;align-items:center;justify-content:center;gap:8px;
         }
-
-        .btn-upload:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        .btn-upload:hover{opacity:.88}
+        .btn-upload:disabled{opacity:.5;cursor:not-allowed}
+        /* Progress */
+        .progress-container{display:none;margin-top:18px}
+        .progress-container.show{display:block}
+        .progress-header{
+            display:flex;justify-content:space-between;
+            margin-bottom:8px;font-family:var(--mono);font-size:11px;
+            text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-2);
         }
-
-        .btn-upload:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .progress-bar-container{
+            height:6px;background:var(--line);border-radius:3px;overflow:hidden;
         }
-
-        /* Progress Bar */
-        .progress-container {
-            display: none;
-            margin-top: 30px;
+        .progress-bar{
+            height:100%;background:var(--ink);border-radius:3px;transition:width .3s;
         }
-
-        .progress-container.show {
-            display: block;
-            animation: fadeIn 0.3s;
+        .progress-message{
+            margin-top:8px;font-size:12px;color:var(--ink-3);
+            display:flex;align-items:center;gap:6px;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* Results */
+        .result-message{
+            display:none;margin-top:18px;border-radius:6px;
+            padding:14px 16px;border:1px solid;
         }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+        .result-message.show{display:block}
+        .result-success{background:var(--success-bg);border-color:oklch(0.85 0.05 155)}
+        .result-error{background:var(--danger-bg);border-color:oklch(0.85 0.05 25)}
+        .result-header{display:flex;align-items:flex-start;gap:12px}
+        .result-icon{
+            width:24px;height:24px;border-radius:50%;
+            display:grid;place-items:center;flex-shrink:0;
+            font-weight:700;font-size:13px;color:#fff;
         }
-
-        .progress-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2c3e50;
+        .result-icon.success{background:var(--success)}
+        .result-icon.error{background:var(--danger)}
+        .result-content{flex:1}
+        .result-content h3{font-size:14px;font-weight:600;margin-bottom:4px}
+        .result-success h3{color:var(--success)}
+        .result-error h3{color:var(--danger)}
+        .result-detail{font-size:13px;margin-bottom:10px}
+        .result-success .result-detail{color:oklch(0.4 0.14 155)}
+        .result-error .result-detail{color:oklch(0.4 0.18 25)}
+        .result-stats{
+            display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;
         }
-
-        .progress-percent {
-            font-size: 14px;
-            font-weight: 700;
-            color: #667eea;
+        .stat-box{
+            background:var(--surface);padding:10px 12px;
+            border:1px solid var(--line);border-radius:5px;
         }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 12px;
-            background: #e9ecef;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        .stat-label{
+            font-family:var(--mono);font-size:10px;
+            color:var(--ink-3);text-transform:uppercase;
+            letter-spacing:0.08em;margin-bottom:4px;
         }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            transition: width 0.3s ease;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        .stat-value{font-size:20px;font-weight:600;color:var(--success)}
+        .stat-value.warning{color:var(--warning)}
+        /* Files List */
+        .file-item{
+            display:flex;justify-content:space-between;align-items:center;
+            padding:14px 18px;border-bottom:1px solid var(--line);
+            transition:background .15s;
         }
-
-        .progress-message {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #7f8c8d;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .file-item:last-child{border-bottom:none}
+        .file-item:hover{background:var(--bg)}
+        .file-item-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+        .file-item-icon{
+            width:32px;height:32px;border-radius:5px;
+            background:var(--accent-bg);color:var(--accent);
+            display:grid;place-items:center;
+            font-family:var(--mono);font-size:11px;font-weight:600;
+            flex-shrink:0;
         }
-
-        .progress-message i {
-            animation: pulse 1.5s infinite;
+        .file-item-info{min-width:0;flex:1}
+        .file-item-info h4{
+            font-size:13px;font-weight:600;margin-bottom:2px;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
         }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .file-item-info p{font-size:12px;color:var(--ink-3)}
+        .file-item-date{margin-right:12px}
+        .file-item-date p{
+            font-family:var(--mono);font-size:11px;color:var(--ink-3);
+            text-transform:uppercase;letter-spacing:0.08em;
         }
-
-        /* Result Messages */
-        .result-message {
-            display: none;
-            margin-top: 30px;
-            border-radius: 12px;
-            padding: 20px;
-            animation: slideIn 0.3s;
+        .file-item-actions{display:flex;gap:6px}
+        .btn-delete{
+            padding:6px 12px;border-radius:5px;
+            border:1px solid oklch(0.85 0.05 25);
+            background:var(--surface);color:var(--danger);
+            font-size:12px;font-weight:500;cursor:pointer;
+            font-family:inherit;display:flex;align-items:center;gap:6px;
+            transition:all .15s;
         }
-
-        .result-message.show {
-            display: block;
+        .btn-delete:hover{
+            background:var(--danger-bg);
+            border-color:var(--danger);
         }
-
-        .result-success {
-            background: #f0fdf4;
-            border-left: 4px solid #2ecc71;
+        .loading{padding:32px;text-align:center;color:var(--ink-3);font-size:13px}
+        .empty-state{padding:48px 32px;text-align:center;color:var(--ink-3)}
+        .empty-state .empty-icon{
+            width:40px;height:40px;border-radius:8px;
+            background:var(--bg);border:1px solid var(--line);
+            display:grid;place-items:center;margin:0 auto 12px;
+            font-family:var(--mono);font-size:18px;
         }
-
-        .result-error {
-            background: #fff5f5;
-            border-left: 4px solid #e74c3c;
+        .empty-state p{font-size:13px}
+        .spinner{
+            display:inline-block;width:11px;height:11px;
+            border:1.5px solid currentColor;border-right-color:transparent;
+            border-radius:50%;animation:spin .7s linear infinite;
         }
+        @keyframes spin{to{transform:rotate(360deg)}}
+        #file-input{display:none}
 
-        .result-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
+        /* Delete Confirmation Modal */
+        .modal-overlay{
+            display:none;position:fixed;inset:0;
+            background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+            z-index:1000;align-items:center;justify-content:center;padding:24px;
         }
-
-        .result-icon {
-            font-size: 28px;
-            margin-top: 2px;
+        .modal-overlay.show{display:flex}
+        .modal-content{
+            background:var(--surface);border:1px solid var(--line);
+            border-radius:10px;max-width:480px;width:100%;
+            box-shadow:0 20px 60px rgba(0,0,0,.3);
         }
-
-        .result-icon.success {
-            color: #2ecc71;
+        .modal-header{
+            padding:20px 24px;border-bottom:1px solid var(--line);
+            display:flex;justify-content:space-between;align-items:center;
         }
-
-        .result-icon.error {
-            color: #e74c3c;
+        .modal-header h3{
+            font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px;
         }
-
-        .result-content h3 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 10px;
+        .modal-header h3::before{
+            content:"!";
+            width:24px;height:24px;border-radius:50%;
+            background:var(--danger);color:var(--surface);
+            display:grid;place-items:center;font-weight:700;font-size:14px;
         }
-
-        .result-success h3 {
-            color: #27ae60;
+        .modal-close{
+            background:none;border:1px solid var(--line-2);
+            color:var(--ink-2);font-size:18px;
+            width:28px;height:28px;border-radius:5px;
+            cursor:pointer;display:grid;place-items:center;
         }
-
-        .result-error h3 {
-            color: #c0392b;
+        .modal-close:hover{background:var(--bg);color:var(--ink)}
+        .modal-body{padding:24px}
+        .modal-body p{font-size:14px;color:var(--ink-2);line-height:1.6;margin-bottom:16px}
+        .modal-body .file-detail{
+            background:var(--bg);padding:12px 14px;border-radius:6px;
+            border:1px solid var(--line);margin-bottom:20px;
         }
-
-        .result-detail {
-            font-size: 14px;
-            margin-bottom: 15px;
+        .modal-body .file-detail strong{
+            display:block;font-size:13px;font-weight:600;
+            margin-bottom:4px;color:var(--ink);
         }
-
-        .result-success .result-detail {
-            color: #27ae60;
+        .modal-body .file-detail p{
+            font-size:12px;color:var(--ink-3);margin:0;
+            font-family:var(--mono);
         }
-
-        .result-error .result-detail {
-            color: #c0392b;
+        .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+        .btn-modal{
+            padding:10px 20px;border-radius:6px;
+            font-size:14px;font-weight:500;cursor:pointer;
+            font-family:inherit;border:1px solid;
+            display:flex;align-items:center;gap:8px;
         }
-
-        .result-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 15px;
+        .btn-cancel{
+            background:var(--surface);color:var(--ink-2);
+            border-color:var(--line-2);
         }
-
-        .stat-box {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border: 2px solid #e9ecef;
+        .btn-cancel:hover{background:var(--bg);color:var(--ink)}
+        .btn-confirm-delete{
+            background:var(--danger);color:var(--surface);
+            border-color:var(--danger);
         }
+        .btn-confirm-delete:hover{opacity:.88}
+        .btn-confirm-delete:disabled{opacity:.5;cursor:not-allowed}
 
-        .stat-label {
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 800;
-            color: #2ecc71;
-        }
-
-        .stat-value.warning {
-            color: #f39c12;
-        }
-
-        /* Recent Files List */
-        .files-list {
-            margin-top: 20px;
-        }
-
-        .file-item {
-            border: 1px solid #e9ecef;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 12px;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .file-item:hover {
-            background: #f8f9fa;
-            border-color: #667eea;
-            transform: translateX(5px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
-        }
-
-        .file-item-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .file-item-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .file-item-icon {
-            font-size: 32px;
-            color: #667eea;
-        }
-
-        .file-item-info h4 {
-            color: #2c3e50;
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .file-item-info p {
-            color: #7f8c8d;
-            font-size: 13px;
-        }
-
-        .file-item-date {
-            text-align: right;
-        }
-
-        .file-item-date p {
-            color: #7f8c8d;
-            font-size: 12px;
-        }
-
-        /* Loading State */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-        }
-
-        .loading i {
-            font-size: 36px;
-            color: #667eea;
-            margin-bottom: 15px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 40px;
-            color: #7f8c8d;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            color: #d1d5db;
-            margin-bottom: 15px;
-        }
-
-        .empty-state p {
-            font-size: 15px;
-        }
-
-        /* Hidden Input */
-        #file-input {
-            display: none;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container { padding: 0 20px; }
-            .header { padding: 15px 20px; flex-direction: column; gap: 15px; }
-            .header h1 { font-size: 20px; }
-            .nav-buttons { flex-wrap: wrap; }
-            .card { padding: 25px; }
-            .drop-zone { padding: 40px 20px; }
-            .result-stats { grid-template-columns: 1fr; }
-            .file-item-header { flex-direction: column; gap: 15px; }
-            .file-item-date { text-align: left; }
+        @media(max-width:768px){
+            .nav-tabs{display:none}
+            .container{padding:0 16px}
+            .result-stats{grid-template-columns:1fr}
+            .file-item-actions{flex-direction:column}
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>
-            <div class="header-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-            Upload de Archivos KMZ
-        </h1>
-        <div class="nav-buttons">
-            <a href="/cobertura/mapa/" class="btn btn-primary"><i class="fas fa-map-marked-alt"></i> Mapa</a>
-            <a href="/cobertura/dashboard/" class="btn btn-primary"><i class="fas fa-chart-line"></i> Dashboard</a>
-            <a href="/cobertura/bulk-query/" class="btn btn-primary"><i class="fas fa-table"></i> CSV</a>
-            <a href="/cobertura/2fa/status/" class="btn btn-primary"><i class="fas fa-shield-alt"></i> Seguridad 2FA</a>
-            <button class="btn btn-secondary" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
+    <div class="topbar">
+        <div class="brand"><div class="brand-mark">C</div>Cobertura ISP</div>
+        <div class="nav-tabs">
+            <a href="/cobertura/mapa/" class="nav-tab"><span class="ico">◉</span> Mapa</a>
+            <a href="/cobertura/dashboard/" class="nav-tab"><span class="ico">▭</span> Dashboard</a>
+            <a href="/cobertura/upload/" class="nav-tab active"><span class="ico">↑</span> Upload</a>
+            <a href="/cobertura/bulk-query/" class="nav-tab"><span class="ico">≡</span> CSV</a>
+            <a href="/cobertura/2fa/status/" class="nav-tab"><span class="ico">⚿</span> Seguridad</a>
         </div>
+        <button class="btn-logout" onclick="logout()">Salir →</button>
     </div>
 
     <div class="container">
-        <!-- Upload Card -->
-        <div class="card">
-            <h2 class="card-title">
-                <i class="fas fa-upload"></i>
-                Subir Archivo KMZ
-            </h2>
-            <p class="card-subtitle">Carga archivos KMZ con información de cobertura de proveedores ISP</p>
-
-            <!-- Instructions -->
-            <div class="instructions-box">
-                <h3><i class="fas fa-info-circle"></i> Instrucciones</h3>
-                <ul>
-                    <li>Formatos permitidos: <strong>.kmz</strong> o <strong>.kml</strong></li>
-                    <li>Tamaño máximo: <strong>50 MB</strong></li>
-                    <li>El nombre del archivo debe contener el proveedor (ej: <code>avidtel_zona1.kmz</code>)</li>
-                    <li>No se permiten archivos duplicados</li>
-                </ul>
+        <div class="page-head">
+            <div>
+                <div class="crumb">// Sección · Carga</div>
+                <h1>Upload de archivos KMZ</h1>
+                <p class="lede">Carga archivos KMZ con información de cobertura de proveedores ISP.</p>
             </div>
-
-            <!-- Drop Zone -->
-            <div id="drop-zone" class="drop-zone">
-                <input type="file" id="file-input" accept=".kmz,.kml">
-                <div id="drop-zone-content">
-                    <div class="drop-zone-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
-                    <div class="drop-zone-title">Arrastra tu archivo KMZ aquí</div>
-                    <div class="drop-zone-subtitle">o haz clic para seleccionar desde tu equipo</div>
-                    <button type="button" class="btn-select-file" onclick="document.getElementById('file-input').click()">
-                        <i class="fas fa-folder-open"></i>
-                        Seleccionar Archivo
-                    </button>
-                </div>
-            </div>
-
-            <!-- File Preview -->
-            <div id="file-preview" class="file-preview">
-                <div class="file-preview-content">
-                    <div class="file-icon">
-                        <i class="fas fa-file-archive"></i>
-                    </div>
-                    <div class="file-info">
-                        <h4 id="file-name">archivo.kmz</h4>
-                        <p id="file-size">0 KB</p>
-                        <p class="file-provider" id="file-provider">Proveedor: Detectando...</p>
-                    </div>
-                </div>
-                <button class="btn-remove" onclick="clearFile()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <!-- Upload Button -->
-            <button id="upload-btn" class="btn-upload" onclick="uploadFile()" style="display: none;">
-                <i class="fas fa-upload"></i>
-                Subir y Procesar Archivo
-            </button>
-
-            <!-- Progress Bar -->
-            <div id="progress-container" class="progress-container">
-                <div class="progress-header">
-                    <span class="progress-label">Procesando archivo...</span>
-                    <span id="progress-percent" class="progress-percent">0%</span>
-                </div>
-                <div class="progress-bar-container">
-                    <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
-                </div>
-                <div class="progress-message" id="progress-message">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    Validando archivo...
-                </div>
-            </div>
-
-            <!-- Result Message -->
-            <div id="result-message" class="result-message"></div>
         </div>
 
-        <!-- Recent Files -->
         <div class="card">
-            <h2 class="card-title">
-                <i class="fas fa-history"></i>
-                Archivos Procesados Recientemente
-            </h2>
-            <div id="files-list" class="files-list">
-                <div class="loading">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Cargando archivos...</p>
+            <div class="card-head">
+                <div class="card-title">
+                    <span class="tag">01</span>
+                    Subir archivo
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="instructions">
+                    <h3>Instrucciones</h3>
+                    <ul>
+                        <li>Formatos permitidos: <code>.kmz</code> o <code>.kml</code></li>
+                        <li>Tamaño máximo: <strong>50 MB</strong></li>
+                        <li>El nombre del archivo debe contener el proveedor (ej: <code>avidtel_zona1.kmz</code>)</li>
+                        <li>No se permiten archivos duplicados</li>
+                    </ul>
+                </div>
+
+                <div id="drop-zone" class="drop-zone">
+                    <input type="file" id="file-input" accept=".kmz,.kml">
+                    <div id="drop-zone-content">
+                        <div class="drop-icon">↑</div>
+                        <div class="drop-zone-title">Arrastra tu archivo KMZ aquí</div>
+                        <div class="drop-zone-subtitle">o selecciónalo desde tu equipo</div>
+                        <button type="button" class="btn-select-file" onclick="document.getElementById('file-input').click()">
+                            Seleccionar archivo
+                        </button>
+                    </div>
+                </div>
+
+                <div id="file-preview" class="file-preview">
+                    <div class="file-preview-content">
+                        <div class="file-icon">KMZ</div>
+                        <div class="file-info">
+                            <h4 id="file-name">archivo.kmz</h4>
+                            <p id="file-size">0 KB</p>
+                            <p class="file-provider" id="file-provider">Detectando proveedor…</p>
+                        </div>
+                    </div>
+                    <button class="btn-remove" onclick="clearFile()">×</button>
+                </div>
+
+                <button id="upload-btn" class="btn-upload" onclick="uploadFile()">
+                    <span>Subir y procesar archivo</span>
+                    <span style="font-family:var(--mono)">→</span>
+                </button>
+
+                <div id="progress-container" class="progress-container">
+                    <div class="progress-header">
+                        <span class="progress-label">Procesando archivo</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="progress-bar" class="progress-bar" style="width:0%"></div>
+                    </div>
+                    <div class="progress-message" id="progress-message">
+                        <span class="spinner"></span> Validando archivo...
+                    </div>
+                </div>
+
+                <div id="result-message" class="result-message"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">
+                    <span class="tag">02</span>
+                    Archivos cargados
+                </div>
+            </div>
+            <div id="files-list">
+                <div class="loading"><span class="spinner"></span> Cargando archivos...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar eliminación</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar este archivo? Esta acción no se puede deshacer y se borrarán todos los registros de cobertura asociados.</p>
+                <div class="file-detail">
+                    <strong id="delete-file-name">archivo.kmz</strong>
+                    <p id="delete-file-info">Proveedor · 123 elementos</p>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-modal btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+                    <button class="btn-modal btn-confirm-delete" id="confirm-delete-btn" onclick="confirmDelete()">
+                        <span>Eliminar archivo</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -742,12 +483,16 @@
 
     <script>
         let selectedFile = null;
+        let fileToDelete = null;
         const API_BASE = '/cobertura/api';
 
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
 
-        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-select-file')) return;
+            fileInput.click();
+        });
 
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -762,15 +507,11 @@
             e.preventDefault();
             dropZone.classList.remove('dragover');
             const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileSelect(files[0]);
-            }
+            if (files.length > 0) handleFileSelect(files[0]);
         });
 
         fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileSelect(e.target.files[0]);
-            }
+            if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
         });
 
         function handleFileSelect(file) {
@@ -782,13 +523,11 @@
                 showError('Formato no válido. Solo se permiten archivos .kmz o .kml');
                 return;
             }
-
             const maxSize = 50 * 1024 * 1024;
             if (file.size > maxSize) {
                 showError('Archivo muy grande. El tamaño máximo es 50 MB');
                 return;
             }
-
             selectedFile = file;
             const provider = detectProvider(fileName);
 
@@ -796,7 +535,7 @@
             document.getElementById('upload-btn').style.display = 'flex';
             document.getElementById('file-name').textContent = file.name;
             document.getElementById('file-size').textContent = formatFileSize(file.size);
-            document.getElementById('file-provider').textContent = `Proveedor detectado: ${provider}`;
+            document.getElementById('file-provider').textContent = `Proveedor: ${provider}`;
             document.getElementById('result-message').classList.remove('show');
         }
 
@@ -826,13 +565,11 @@
 
         async function uploadFile() {
             if (!selectedFile) return;
-
             const formData = new FormData();
             formData.append('archivo', selectedFile);
 
             document.getElementById('progress-container').classList.add('show');
             document.getElementById('upload-btn').disabled = true;
-
             updateProgress(10, 'Validando archivo...');
 
             try {
@@ -847,7 +584,6 @@
 
                 xhr.addEventListener('load', async () => {
                     updateProgress(90, 'Procesando geometrías...');
-
                     setTimeout(() => {
                         if (xhr.status === 201) {
                             const response = JSON.parse(xhr.responseText);
@@ -859,9 +595,7 @@
                             const error = JSON.parse(xhr.responseText);
                             showError(error.error || 'Error al procesar el archivo', error.detalle);
                         }
-
                         document.getElementById('upload-btn').disabled = false;
-
                         setTimeout(() => {
                             document.getElementById('progress-container').classList.remove('show');
                         }, 2000);
@@ -876,7 +610,6 @@
                 xhr.open('POST', `${API_BASE}/upload-kmz/`);
                 xhr.withCredentials = true;
                 xhr.send(formData);
-
             } catch (error) {
                 showError('Error inesperado: ' + error.message);
                 document.getElementById('upload-btn').disabled = false;
@@ -886,7 +619,7 @@
         function updateProgress(percent, message) {
             document.getElementById('progress-bar').style.width = percent + '%';
             document.getElementById('progress-percent').textContent = percent + '%';
-            document.getElementById('progress-message').innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${message}`;
+            document.getElementById('progress-message').innerHTML = `<span class="spinner"></span> ${message}`;
         }
 
         function showSuccess(response) {
@@ -894,13 +627,13 @@
             resultDiv.className = 'result-message result-success show';
             resultDiv.innerHTML = `
                 <div class="result-header">
-                    <i class="fas fa-check-circle result-icon success"></i>
+                    <span class="result-icon success">✓</span>
                     <div class="result-content">
                         <h3>${response.mensaje}</h3>
                         <p class="result-detail"><strong>Proveedor:</strong> ${response.proveedor}</p>
                         <div class="result-stats">
                             <div class="stat-box">
-                                <div class="stat-label">Total Elementos</div>
+                                <div class="stat-label">Total elementos</div>
                                 <div class="stat-value">${response.estadisticas.total_elementos}</div>
                             </div>
                             <div class="stat-box">
@@ -922,11 +655,11 @@
             resultDiv.className = 'result-message result-error show';
             resultDiv.innerHTML = `
                 <div class="result-header">
-                    <i class="fas fa-exclamation-circle result-icon error"></i>
+                    <span class="result-icon error">!</span>
                     <div class="result-content">
                         <h3>Error al procesar archivo</h3>
                         <p class="result-detail">${message}</p>
-                        ${detalle ? `<p class="result-detail" style="font-size: 13px; margin-top: 5px;">${detalle}</p>` : ''}
+                        ${detalle ? `<p class="result-detail" style="font-size:12px;margin-top:4px;opacity:.8">${detalle}</p>` : ''}
                     </div>
                 </div>
             `;
@@ -934,58 +667,48 @@
 
         async function loadArchivos() {
             try {
-                const response = await fetch(`${API_BASE}/listar-kmz/`, {
-                    credentials: 'include'
-                });
-
+                const response = await fetch(`${API_BASE}/listar-kmz/`, { credentials: 'include' });
                 if (response.status === 401 || response.status === 403) {
                     window.location.href = '/cobertura/login/';
                     return;
                 }
-
                 if (!response.ok) throw new Error('Error al cargar archivos');
-
                 const data = await response.json();
                 displayArchivos(data.archivos);
-
             } catch (error) {
                 document.getElementById('files-list').innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
+                        <div class="empty-icon">!</div>
                         <p>Error al cargar archivos procesados</p>
-                    </div>
-                `;
+                    </div>`;
             }
         }
 
         function displayArchivos(archivos) {
             const listDiv = document.getElementById('files-list');
-
             if (archivos.length === 0) {
                 listDiv.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
+                        <div class="empty-icon">∅</div>
                         <p>No hay archivos procesados aún</p>
-                    </div>
-                `;
+                    </div>`;
                 return;
             }
-
-            listDiv.innerHTML = archivos.slice(0, 10).map(archivo => `
+            listDiv.innerHTML = archivos.map(archivo => `
                 <div class="file-item">
-                    <div class="file-item-header">
-                        <div class="file-item-left">
-                            <div class="file-item-icon">
-                                <i class="fas fa-file-archive"></i>
-                            </div>
-                            <div class="file-item-info">
-                                <h4>${archivo.nombre}</h4>
-                                <p>${archivo.proveedor} • ${archivo.total_elementos} elementos</p>
-                            </div>
+                    <div class="file-item-left">
+                        <div class="file-item-icon">KMZ</div>
+                        <div class="file-item-info">
+                            <h4>${archivo.nombre}</h4>
+                            <p>${archivo.proveedor} · ${archivo.total_elementos} elementos</p>
                         </div>
-                        <div class="file-item-date">
-                            <p>${formatDate(archivo.fecha_subida)}</p>
-                        </div>
+                    </div>
+                    <div class="file-item-date"><p>${formatDate(archivo.fecha_subida)}</p></div>
+                    <div class="file-item-actions">
+                        <button class="btn-delete" onclick='openDeleteModal(${JSON.stringify(archivo)})'>
+                            <span>✕</span>
+                            <span>Eliminar</span>
+                        </button>
                     </div>
                 </div>
             `).join('');
@@ -994,17 +717,78 @@
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleDateString('es-CO', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
             });
         }
 
-        function logout() {
-            window.location.href = '/cobertura/logout/';
+        function openDeleteModal(archivo) {
+            fileToDelete = archivo;
+            document.getElementById('delete-file-name').textContent = archivo.nombre;
+            document.getElementById('delete-file-info').textContent = `${archivo.proveedor} · ${archivo.total_elementos} elementos`;
+            document.getElementById('delete-modal').classList.add('show');
         }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.remove('show');
+            fileToDelete = null;
+        }
+
+        async function confirmDelete() {
+            if (!fileToDelete) return;
+            
+            const confirmBtn = document.getElementById('confirm-delete-btn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="spinner"></span><span>Eliminando...</span>';
+
+            try {
+                // Encode the filename for URL
+                const encodedFilename = encodeURIComponent(fileToDelete.nombre);
+                const response = await fetch(`${API_BASE}/delete-kmz/${encodedFilename}/`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    closeDeleteModal();
+                    loadArchivos();
+                    showSuccessToast('Archivo eliminado correctamente');
+                } else {
+                    const error = await response.json();
+                    alert('Error al eliminar: ' + (error.error || 'Error desconocido'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión al eliminar archivo');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<span>Eliminar archivo</span>';
+            }
+        }
+
+        function showSuccessToast(message) {
+            const resultDiv = document.getElementById('result-message');
+            resultDiv.className = 'result-message result-success show';
+            resultDiv.innerHTML = `
+                <div class="result-header">
+                    <span class="result-icon success">✓</span>
+                    <div class="result-content">
+                        <h3>${message}</h3>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => {
+                resultDiv.classList.remove('show');
+            }, 3000);
+        }
+
+        // Close modal on outside click
+        document.getElementById('delete-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeDeleteModal();
+        });
+
+        function logout() { window.location.href = '/cobertura/logout/'; }
 
         loadArchivos();
     </script>

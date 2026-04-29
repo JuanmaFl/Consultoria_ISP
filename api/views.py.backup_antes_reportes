@@ -1,0 +1,457 @@
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.measure import D
+from django.contrib.auth import get_user_model
+from django.shortcuts import render, redirect
+from django.conf import settings
+import requests
+from django.http import HttpResponse, FileResponse
+from .models import CoberturaISP
+from .serializers import (
+    CoberturaISPSerializer, 
+    ConsultaCoberturaSerializer,
+    ResultadoCoberturaSerializer,
+    UsuarioSerializer
+)
+
+Usuario = get_user_model()
+
+
+class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet para usuarios (solo lectura desde API)"""
+    queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
+    permission_classes = [IsAuthenticated]
+    
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        """Obtener información del usuario actual"""
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
+
+
+class CoberturaISPViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet para coberturas ISP"""
+    queryset = CoberturaISP.objects.all()
+    serializer_class = CoberturaISPSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Filtrar por proveedor si se especifica
+        proveedor = self.request.query_params.get('proveedor', None)
+        if proveedor:
+            queryset = queryset.filter(proveedor__icontains=proveedor)
+        
+        return queryset
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def consultar_cobertura(request):
+    """
+    Consultar cobertura en una ubicación específica
+    
+    POST /api/consultar-cobertura/
+    {
+        "latitud": 6.2442,
+        "longitud": -75.5812,
+        "radio_metros": 1000
+    }
+    """
+    serializer = ConsultaCoberturaSerializer(data=request.data)
+    
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    latitud = serializer.validated_data['latitud']
+    longitud = serializer.validated_data['longitud']
+    radio_metros = serializer.validated_data.get('radio_metros', 1000)
+    
+    # Crear punto de consulta
+    punto = Point(longitud, latitud, srid=4326)
+    
+    # Buscar coberturas dentro del radio
+    coberturas_cercanas = CoberturaISP.objects.filter(
+        geom__distance_lte=(punto, D(m=radio_metros))
+    ).annotate(
+        distancia=Distance('geom', punto)
+    ).order_by('distancia')
+    
+    # Obtener ISPs únicos
+    isps_disponibles = list(
+        coberturas_cercanas.values_list('proveedor', flat=True)
+        .distinct()
+        .exclude(proveedor__isnull=True)
+        .exclude(proveedor='')
+    )
+    
+    # Obtener distancia mínima
+    distancia_minima = None
+    if coberturas_cercanas.exists():
+        distancia_minima = round(coberturas_cercanas.first().distancia.m, 2)
+    
+    # Serializar rutas cercanas (máximo 10)
+    rutas_cercanas = []
+    for cobertura in coberturas_cercanas[:10]:
+        rutas_cercanas.append({
+            'id': cobertura.id,
+            'nombre': cobertura.nombre or 'Sin nombre',
+            'proveedor': cobertura.proveedor or 'Sin proveedor',
+            'distancia_metros': round(cobertura.distancia.m, 2),
+            'archivo_origen': cobertura.archivo_origen
+        })
+    
+    resultado = {
+        'tiene_cobertura': len(isps_disponibles) > 0,
+        'isps_disponibles': isps_disponibles,
+        'total_isps': len(isps_disponibles),
+        'distancia_minima_metros': distancia_minima,
+        'rutas_cercanas': rutas_cercanas
+    }
+    
+    resultado_serializer = ResultadoCoberturaSerializer(resultado)
+    return Response(resultado_serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def geocodificar_direccion(request):
+    """
+    Convertir dirección en coordenadas usando Google Geocoding API
+    
+    GET /api/geocodificar/?direccion=Calle 10, Medellín, Colombia
+    """
+    direccion = request.query_params.get('direccion', '')
+    
+    if not direccion:
+        return Response(
+            {'error': 'Parámetro "direccion" es requerido'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Usar Google Geocoding API
+        url = 'https://maps.googleapis.com/maps/api/geocode/json'
+        params = {
+            'address': direccion,
+            'key': settings.GOOGLE_MAPS_API_KEY,
+            'region': 'co',
+            'components': 'country:CO'
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        if data['status'] != 'OK' or not data.get('results'):
+            return Response(
+                {'error': 'No se encontraron resultados para la dirección'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Formatear resultados
+        ubicaciones = []
+        for resultado in data['results'][:5]:
+            location = resultado['geometry']['location']
+            ubicaciones.append({
+                'direccion_completa': resultado.get('formatted_address'),
+                'latitud': float(location['lat']),
+                'longitud': float(location['lng']),
+                'tipo': resultado.get('types', [''])[0] if resultado.get('types') else '',
+                'importancia': 1.0
+            })
+        
+        return Response({'resultados': ubicaciones})
+        
+    except requests.exceptions.RequestException as e:
+        return Response(
+            {'error': f'Error al consultar servicio de geocodificación: {str(e)}'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Error inesperado: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def estadisticas_cobertura(request):
+    """
+    Obtener estadísticas generales del sistema
+    
+    GET /api/estadisticas/
+    """
+    total_coberturas = CoberturaISP.objects.count()
+    proveedores = CoberturaISP.objects.values_list('proveedor', flat=True).distinct().exclude(proveedor__isnull=True).exclude(proveedor='')
+    archivos = CoberturaISP.objects.values_list('archivo_origen', flat=True).distinct().exclude(archivo_origen__isnull=True).exclude(archivo_origen='')
+    
+    return Response({
+        'total_coberturas': total_coberturas,
+        'total_proveedores': len(proveedores),
+        'proveedores': list(proveedores),
+        'total_archivos_kmz': len(archivos),
+        'archivos_kmz': list(archivos)
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def dashboard_estadisticas(request):
+    """
+    Dashboard completo con estadísticas y mapa de Colombia
+    
+    GET /api/dashboard/
+    """
+    from django.db.models import Count
+    
+    # Estadísticas generales
+    total_coberturas = CoberturaISP.objects.count()
+    
+    # Por proveedor
+    por_proveedor = list(
+        CoberturaISP.objects.values('proveedor')
+        .annotate(cantidad=Count('id'))
+        .order_by('-cantidad')
+    )
+    
+    # Por tipo de geometría
+    por_tipo = []
+    for tipo in ['MULTILINESTRING', 'MULTIPOINT', 'MULTIPOLYGON']:
+        count = CoberturaISP.objects.filter(geom__isnull=False).extra(
+            where=[f"GeometryType(geom) = '{tipo}'"]
+        ).count()
+        if count > 0:
+            tipo_nombre = {
+                'MULTILINESTRING': 'Líneas (Rutas)',
+                'MULTIPOINT': 'Puntos',
+                'MULTIPOLYGON': 'Áreas'
+            }
+            por_tipo.append({
+                'tipo': tipo_nombre.get(tipo, tipo),
+                'cantidad': count
+            })
+    
+    # Por archivo origen
+    archivos = list(
+        CoberturaISP.objects.values('archivo_origen')
+        .annotate(cantidad=Count('id'))
+        .order_by('archivo_origen')
+    )
+    
+    # Zonas con cobertura
+    zonas_cobertura = set()
+    for archivo in CoberturaISP.objects.values_list('archivo_origen', flat=True).distinct():
+        if archivo:
+            nombre = archivo.replace('.kmz', '').replace('_', ' ')
+            zonas_cobertura.add(nombre)
+    
+    return Response({
+        'resumen': {
+            'total_registros': total_coberturas,
+            'total_proveedores': len(por_proveedor),
+            'total_archivos_kmz': len(archivos),
+            'total_zonas': len(zonas_cobertura)
+        },
+        'por_proveedor': por_proveedor,
+        'por_tipo_geometria': por_tipo,
+        'archivos_kmz': archivos,
+        'zonas_cobertura': sorted(list(zonas_cobertura))
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generar_reporte_pdf(request):
+    """
+    Generar reporte ejecutivo en PDF
+    
+    POST /api/generar-reporte/
+    Body: {
+        "tipo": "completo" | "por_isp" | "por_zona",
+        "isp": "opcional",
+        "zona": "opcional"
+    }
+    """
+    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from io import BytesIO
+    from datetime import datetime
+    from django.db.models import Count
+    
+    # Obtener parámetros
+    tipo = request.data.get('tipo', 'completo')
+    isp_filtro = request.data.get('isp', None)
+    zona_filtro = request.data.get('zona', None)
+    
+    # Crear PDF en memoria
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Estilos personalizados
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#667eea'),
+        alignment=TA_CENTER,
+        spaceAfter=30
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'CustomSubtitle',
+        parent=styles['Heading2'],
+        fontSize=16,
+        textColor=colors.HexColor('#2c3e50'),
+        spaceAfter=12
+    )
+    
+    # Título
+    fecha_actual = datetime.now().strftime("%d/%m/%Y %H:%M")
+    elements.append(Paragraph("REPORTE DE COBERTURA ISP", title_style))
+    elements.append(Paragraph(f"Generado: {fecha_actual}", styles['Normal']))
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Estadísticas generales
+    total_registros = CoberturaISP.objects.count()
+    
+    # Por proveedor
+    por_proveedor = CoberturaISP.objects.values('proveedor').annotate(
+        cantidad=Count('id')
+    ).order_by('-cantidad')
+    
+    # Resumen ejecutivo
+    elements.append(Paragraph("RESUMEN EJECUTIVO", subtitle_style))
+    
+    resumen_data = [
+        ['Métrica', 'Valor'],
+        ['Total de Registros', f'{total_registros:,}'],
+        ['Proveedores Activos', f'{por_proveedor.count()}'],
+        ['Archivos KMZ Procesados', f'{CoberturaISP.objects.values("archivo_origen").distinct().count()}'],
+    ]
+    
+    resumen_table = Table(resumen_data, colWidths=[3*inch, 2*inch])
+    resumen_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#667eea')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+    ]))
+    
+    elements.append(resumen_table)
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Distribución por proveedor
+    elements.append(Paragraph("DISTRIBUCIÓN POR PROVEEDOR", subtitle_style))
+    
+    proveedor_data = [['Proveedor', 'Registros', 'Porcentaje']]
+    for p in por_proveedor:
+        porcentaje = (p['cantidad'] / total_registros * 100) if total_registros > 0 else 0
+        proveedor_data.append([
+            p['proveedor'] or 'Sin proveedor',
+            f"{p['cantidad']:,}",
+            f"{porcentaje:.1f}%"
+        ])
+    
+    proveedor_table = Table(proveedor_data, colWidths=[3*inch, 1.5*inch, 1.5*inch])
+    proveedor_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#667eea')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+    ]))
+    
+    elements.append(proveedor_table)
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Tipos de geometría
+    elements.append(Paragraph("TIPOS DE COBERTURA", subtitle_style))
+    
+    tipo_data = [['Tipo', 'Cantidad']]
+    for tipo in ['MULTILINESTRING', 'MULTIPOINT', 'MULTIPOLYGON']:
+        count = CoberturaISP.objects.filter(geom__isnull=False).extra(
+            where=[f"GeometryType(geom) = '{tipo}'"]
+        ).count()
+        if count > 0:
+            tipo_nombre = {
+                'MULTILINESTRING': 'Líneas (Rutas de Fibra)',
+                'MULTIPOINT': 'Puntos (Nodos)',
+                'MULTIPOLYGON': 'Áreas (Zonas)'
+            }
+            tipo_data.append([tipo_nombre.get(tipo, tipo), f"{count:,}"])
+    
+    tipo_table = Table(tipo_data, colWidths=[4*inch, 2*inch])
+    tipo_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#667eea')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+    ]))
+    
+    elements.append(tipo_table)
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Footer
+    elements.append(Spacer(1, 0.5*inch))
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.grey,
+        alignment=TA_CENTER
+    )
+    elements.append(Paragraph("Sistema de Consulta de Cobertura ISP - Reporte Confidencial", footer_style))
+    
+    # Generar PDF
+    doc.build(elements)
+    
+    # Preparar respuesta
+    # Devolver PDF
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f'reporte_cobertura_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf')
+    
+    
+    return response
+
+# Vistas de templates
+def login_view(request):
+    """Vista de login"""
+    return render(request, 'cobertura/login.html')
+
+
+def mapa_view(request):
+    """Vista del mapa interactivo"""
+    return render(request, 'cobertura/mapa.html', {
+        'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY
+    })
+
+def dashboard_view(request):
+    """Vista del dashboard de estadísticas"""
+    return render(request, 'cobertura/dashboard.html', {
+        'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY
+    })

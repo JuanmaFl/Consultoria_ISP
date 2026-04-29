@@ -3,527 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Cobertura - Sistema ISP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Mapa · Cobertura ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            background: #f5f7fa;
+        :root{
+            --bg:oklch(0.985 0.004 260);
+            --surface:#fff;
+            --ink:oklch(0.22 0.02 260);
+            --ink-2:oklch(0.45 0.015 260);
+            --ink-3:oklch(0.62 0.012 260);
+            --line:oklch(0.92 0.008 260);
+            --line-2:oklch(0.86 0.01 260);
+            --accent:oklch(0.52 0.16 248);
+            --accent-bg:oklch(0.97 0.02 248);
+            --success:oklch(0.55 0.14 155);
+            --success-bg:oklch(0.96 0.04 155);
+            --warning:oklch(0.62 0.14 75);
+            --warning-bg:oklch(0.97 0.04 75);
+            --danger:oklch(0.55 0.18 25);
+            --danger-bg:oklch(0.97 0.025 25);
+            --node:oklch(0.62 0.16 50);
+            --node-bg:oklch(0.97 0.04 50);
+            --route:oklch(0.52 0.16 248);
+            --route-bg:oklch(0.97 0.025 248);
+            --area:oklch(0.6 0.14 95);
+            --area-bg:oklch(0.97 0.05 95);
+            --mono:'JetBrains Mono',ui-monospace,monospace;
         }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',system-ui,sans-serif;overflow:hidden;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+        .topbar{background:var(--surface);border-bottom:1px solid var(--line);padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
+        .brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600}
+        .brand-mark{width:24px;height:24px;border-radius:5px;background:var(--ink);display:grid;place-items:center;color:var(--bg);font-family:var(--mono);font-size:11px;font-weight:700}
+        .nav-tabs{display:flex;gap:2px}
+        .nav-tab{padding:7px 12px;border-radius:5px;font-size:13px;color:var(--ink-2);text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+        .nav-tab:hover{background:var(--bg)}
+        .nav-tab.active{background:var(--ink);color:var(--surface)}
+        .nav-tab .ico{font-family:var(--mono);font-size:12px;opacity:.7}
+        .btn-logout{padding:7px 12px;border-radius:5px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);font-size:13px;cursor:pointer;font-family:inherit}
+        .btn-logout:hover{background:var(--bg);color:var(--ink)}
 
-        /* Header */
-        .header {
-            background: white;
-            color: #2c3e50;
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            border-bottom: 1px solid #e0e0e0;
-        }
-        .header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .header-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-        .nav-buttons {
-            display: flex;
-            gap: 12px;
-        }
-        .btn-logout {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-logout:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-        .btn-primary:hover {
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
+        .container{display:flex;height:calc(100vh - 49px)}
+        .sidebar{width:400px;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+        .search-panel{padding:20px;border-bottom:1px solid var(--line)}
+        .search-head{margin-bottom:14px}
+        .search-tag{font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+        .search-title{font-size:15px;font-weight:600}
 
-        /* Main Container */
-        .container {
-            display: flex;
-            height: calc(100vh - 84px);
-        }
+        .search-tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--line-2);border-radius:6px;padding:2px;background:var(--bg)}
+        .tab{flex:1;padding:8px 10px;background:transparent;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:500;color:var(--ink-2);font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+        .tab:hover{color:var(--ink)}
+        .tab.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+        .tab .ico{font-family:var(--mono);font-size:11px;opacity:.7}
+        .tab-content{display:none}
+        .tab-content.active{display:block}
 
-        /* Sidebar */
-        .sidebar {
-            width: 420px;
-            background: white;
-            border-right: 1px solid #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
+        .input-group{margin-bottom:12px}
+        .input-group label{display:block;margin-bottom:6px;font-size:11px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;font-weight:500}
+        .input-group input{width:100%;padding:9px 12px;border:1px solid var(--line-2);border-radius:6px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--ink);transition:border-color .15s}
+        .input-group input:focus{outline:none;border-color:var(--ink)}
 
-        /* Search Panel */
-        .search-panel {
-            padding: 25px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .search-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: #f8f9fa;
-            padding: 5px;
-            border-radius: 12px;
-        }
-        .tab {
-            flex: 1;
-            padding: 12px;
-            background: transparent;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            color: #7f8c8d;
-            transition: all 0.3s;
-        }
-        .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .btn-search{width:100%;padding:10px 14px;background:var(--ink);color:var(--surface);border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+        .btn-search:hover{opacity:.88}
+        .btn-search:disabled{opacity:.5;cursor:not-allowed}
+        .btn-search .arr{font-family:var(--mono)}
 
-        .input-group {
-            margin-bottom: 18px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s;
-        }
-        .input-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        }
+        .loading{display:none;text-align:center;padding:14px;color:var(--ink-3);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-top:10px}
+        .spinner{display:inline-block;width:11px;height:11px;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px;margin-right:6px}
+        @keyframes spin{to{transform:rotate(360deg)}}
 
-        .btn-search {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-        .btn-search:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-        .btn-search:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
+        /* ISP Filters Panel */
+        .isp-filters-panel{padding:20px;border-bottom:1px solid var(--line);background:var(--bg)}
+        .isp-filters-head{margin-bottom:12px}
+        .isp-filters-head .search-tag{margin-bottom:4px}
+        .isp-filters-head .search-title{font-size:15px;font-weight:600}
+        .isp-filter-option{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:4px 0;border-radius:6px;cursor:pointer;transition:background .15s;border:1px solid transparent}
+        .isp-filter-option:hover{background:var(--surface);border-color:var(--line)}
+        .isp-filter-checkbox{width:16px;height:16px;border:1.5px solid var(--line-2);border-radius:4px;cursor:pointer;position:relative;flex-shrink:0;transition:all .15s}
+        .isp-filter-checkbox.checked{background:var(--ink);border-color:var(--ink)}
+        .isp-filter-checkbox.checked::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:var(--surface);font-size:11px;font-weight:700}
+        .isp-filter-label{font-size:13px;font-weight:500;color:var(--ink);flex:1;cursor:pointer}
+        .isp-filter-count{font-family:var(--mono);font-size:11px;color:var(--ink-3);padding:2px 7px;background:var(--bg);border-radius:4px;border:1px solid var(--line)}
+        .isp-filter-actions{display:flex;gap:6px;margin-top:10px}
+        .btn-filter-action{flex:1;padding:7px 10px;border:1px solid var(--line-2);background:var(--surface);border-radius:5px;cursor:pointer;font-size:12px;font-weight:500;color:var(--ink-2);font-family:inherit}
+        .btn-filter-action:hover{background:var(--bg);color:var(--ink);border-color:var(--ink)}
 
-        /* Results Panel */
-        .results-panel {
-            padding: 25px;
-            flex: 1;
-            overflow-y: auto;
-        }
-        .results-panel h3 {
-            margin-bottom: 15px;
-            color: #2c3e50;
-            font-weight: 700;
-        }
+        .results-panel{padding:20px;flex:1;overflow-y:auto}
+        .results-empty{color:var(--ink-3);text-align:center;margin-top:40px;font-size:13px;padding:24px}
+        .results-empty .icon-box{width:48px;height:48px;border:1px dashed var(--line-2);border-radius:8px;display:grid;place-items:center;margin:0 auto 14px;font-family:var(--mono);font-size:18px;color:var(--ink-3)}
 
-        .result-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        .result-card.no-coverage {
-            border-left-color: #e74c3c;
-            background: #fff5f5;
-        }
-        .result-card.has-coverage {
-            border-left-color: #2ecc71;
-            background: #f0fdf4;
-        }
+        .result-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden}
+        .result-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ink-3)}
+        .result-card.has-coverage::before{background:var(--success)}
+        .result-card.no-coverage::before{background:var(--danger)}
+        .coverage-status{font-family:var(--mono);font-size:11px;font-weight:600;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.06em;display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:4px;border:1px solid}
+        .coverage-status.yes{color:var(--success);background:var(--success-bg);border-color:oklch(0.85 0.05 155)}
+        .coverage-status.no{color:var(--danger);background:var(--danger-bg);border-color:oklch(0.85 0.06 25)}
+        .coverage-status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
 
-        .coverage-status {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-        .coverage-status.yes { color: #2ecc71; }
-        .coverage-status.no { color: #e74c3c; }
+        .meta-row{font-size:12px;color:var(--ink-2);margin-top:6px;display:flex;justify-content:space-between;gap:10px}
+        .meta-row strong{color:var(--ink-3);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:500}
+        .meta-row span{font-family:var(--mono);color:var(--ink)}
 
-        /* Collapsible sections */
-        .collapsible-section {
-            margin-top: 15px;
-        }
+        .collapsible-section{margin-top:14px}
+        .collapsible-header{background:var(--bg);padding:10px 14px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:500;color:var(--ink);border:1px solid var(--line)}
+        .collapsible-header:hover{background:var(--surface);border-color:var(--ink)}
+        .collapsible-icon{font-family:var(--mono);font-size:11px;color:var(--ink-3);transition:transform .2s}
+        .collapsible-icon.open{transform:rotate(180deg)}
+        .collapsible-content{max-height:0;overflow:hidden;transition:max-height .3s ease-out}
+        .collapsible-content.open{max-height:500px;overflow-y:auto}
 
-        .collapsible-header {
-            background: white;
-            padding: 14px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s;
-            font-weight: 600;
-            color: #2c3e50;
-            border: 2px solid #e9ecef;
-        }
+        .isp-list{padding:8px 0 4px}
+        .isp-item{padding:8px 12px;margin:4px 0;font-size:12px;color:var(--ink);border-left:2px solid var(--accent);background:var(--accent-bg);border-radius:0 4px 4px 0;display:flex;align-items:center;gap:8px}
+        .isp-item::before{content:"◉";color:var(--accent);font-family:var(--mono)}
 
-        .collapsible-header:hover {
-            background: #f8f9fa;
-            border-color: #667eea;
-        }
+        .geometry-section{margin-top:14px;border-radius:8px;overflow:hidden;border:1px solid}
+        .geometry-section.nodos{border-color:oklch(0.85 0.07 50)}
+        .geometry-section.rutas{border-color:oklch(0.88 0.04 248)}
+        .geometry-section.areas{border-color:oklch(0.85 0.07 95)}
+        .geometry-header{padding:10px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.04em}
+        .geometry-header.nodos{color:var(--node);background:var(--node-bg)}
+        .geometry-header.rutas{color:var(--route);background:var(--route-bg)}
+        .geometry-header.areas{color:var(--area);background:var(--area-bg)}
+        .geometry-header .lhs{display:flex;align-items:center;gap:10px}
+        .geometry-header .glyph{width:18px;height:18px;display:grid;place-items:center;border-radius:3px;background:currentColor;color:var(--surface);font-size:10px}
+        .geometry-list{padding:10px;background:var(--surface)}
+        .geometry-hint{padding:7px 10px;border-radius:4px;font-size:11px;margin-bottom:8px;font-family:var(--mono);color:var(--ink-3);background:var(--bg);border:1px dashed var(--line-2);text-transform:uppercase;letter-spacing:0.06em}
+        .geometry-item{background:var(--bg);padding:10px 12px;margin:5px 0;border-radius:5px;font-size:12px;cursor:pointer;border:1px solid var(--line);transition:all .15s}
+        .geometry-item:hover{border-color:var(--ink);background:var(--surface);transform:translateX(2px)}
+        .geometry-item-title{font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
+        .geometry-item-title .prov{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:0.04em;font-weight:500}
+        .geometry-item.nodos .prov{background:var(--node-bg);color:var(--node);border:1px solid oklch(0.88 0.05 50)}
+        .geometry-item.rutas .prov{background:var(--route-bg);color:var(--route);border:1px solid oklch(0.9 0.03 248)}
+        .geometry-item.areas .prov{background:var(--area-bg);color:var(--area);border:1px solid oklch(0.88 0.05 95)}
+        .geometry-distance{color:var(--ink-3);font-size:11px;margin-top:4px;font-family:var(--mono)}
 
-        .collapsible-icon {
-            transition: transform 0.3s;
-            font-size: 16px;
-            color: #667eea;
-        }
+        .map-container{flex:1;position:relative;background:var(--bg)}
+        #map{width:100%;height:100%}
+        .map-info{position:absolute;bottom:20px;left:20px;background:var(--surface);padding:10px 14px;border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,.08);font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:8px;border:1px solid var(--line);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em}
+        .map-info::before{content:"⌖";color:var(--accent);font-size:16px}
 
-        .collapsible-icon.open {
-            transform: rotate(180deg);
-        }
+        .map-legend{position:absolute;top:20px;right:20px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 12px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px;font-size:11px}
+        .map-legend-title{font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px}
+        .legend-row{display:flex;align-items:center;gap:8px;color:var(--ink-2)}
+        .legend-dot{width:10px;height:10px;border-radius:2px}
 
-        .collapsible-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .collapsible-content.open {
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .isp-list {
-            padding: 12px 0;
-        }
-        .isp-item {
-            background: white;
-            padding: 10px 14px;
-            margin: 6px 0;
-            border-radius: 8px;
-            font-size: 14px;
-            border: 1px solid #e9ecef;
-            color: #2c3e50;
-        }
-
-        /* Geometry type sections */
-        .geometry-section {
-            margin-top: 15px;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .geometry-section.nodos {
-            background: #fff7ed;
-            border: 2px solid #fed7aa;
-        }
-
-        .geometry-section.rutas {
-            background: #eff6ff;
-            border: 2px solid #bfdbfe;
-        }
-
-        .geometry-section.areas {
-            background: #fefce8;
-            border: 2px solid #fde047;
-        }
-
-        .geometry-header {
-            padding: 14px 16px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .geometry-header:hover {
-            opacity: 0.8;
-        }
-
-        .geometry-header.nodos {
-            color: #c2410c;
-            background: #fed7aa;
-        }
-
-        .geometry-header.rutas {
-            color: #1e3a8a;
-            background: #dbeafe;
-        }
-
-        .geometry-header.areas {
-            color: #713f12;
-            background: #fde047;
-        }
-
-        .geometry-list {
-            padding: 12px;
-        }
-
-        .geometry-hint {
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-        }
-
-        .geometry-hint.nodos {
-            background: #fed7aa;
-            color: #c2410c;
-            border: 1px solid #fdba74;
-        }
-
-        .geometry-hint.rutas {
-            background: #dbeafe;
-            color: #1e3a8a;
-            border: 1px solid #bfdbfe;
-        }
-
-        .geometry-hint.areas {
-            background: #fde047;
-            color: #713f12;
-            border: 1px solid #facc15;
-        }
-
-        .geometry-item {
-            background: white;
-            padding: 12px 14px;
-            margin: 6px 0;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid #e9ecef;
-        }
-
-        .geometry-item:hover {
-            transform: translateX(8px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .geometry-item.nodos:hover {
-            border-color: #f97316;
-            background: #fff7ed;
-        }
-
-        .geometry-item.rutas:hover {
-            border-color: #3b82f6;
-            background: #eff6ff;
-        }
-
-        .geometry-item.areas:hover {
-            border-color: #eab308;
-            background: #fefce8;
-        }
-
-        .geometry-distance {
-            color: #7f8c8d;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-
-        /* Map Container */
-        .map-container {
-            flex: 1;
-            position: relative;
-            background: #f5f7fa;
-        }
-        #map {
-            width: 100%;
-            height: 100%;
-        }
-
-        .map-info {
-            position: absolute;
-            bottom: 30px;
-            left: 30px;
-            background: white;
-            padding: 14px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-            font-size: 13px;
-            color: #2c3e50;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid #e0e0e0;
-        }
-
-        /* Loading */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .container { flex-direction: column; }
-            .sidebar {
-                width: 100%;
-                height: 50vh;
-            }
-            .map-container {
-                height: 50vh;
-            }
-            .header {
-                padding: 15px 20px;
-                flex-direction: column;
-                gap: 15px;
-            }
-            .header h1 { font-size: 18px; }
+        @media (max-width:768px){
+            .nav-tabs{display:none}
+            .container{flex-direction:column}
+            .sidebar{width:100%;height:50vh}
+            .map-container{height:50vh}
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>
-            <div class="header-icon"><i class="fas fa-map-marked-alt"></i></div>
-            Sistema de Consulta de Cobertura ISP
-        </h1>
-        <div class="nav-buttons">
-            <a href="/cobertura/dashboard/" class="btn-logout btn-primary"><i class="fas fa-chart-line"></i> Dashboard</a>
-            <a href="/cobertura/upload/" class="btn-logout btn-primary"><i class="fas fa-cloud-upload-alt"></i> Upload</a>
-            <a href="/cobertura/bulk-query/" class="btn btn-primary"><i class="fas fa-table"></i> CSV</a>
-            <a href="/cobertura/2fa/status/" class="btn-logout btn-primary"><i class="fas fa-shield-alt"></i> Seguridad 2FA</a>
-            <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    <div class="topbar">
+        <div class="brand"><div class="brand-mark">C</div>Cobertura ISP</div>
+        <div class="nav-tabs">
+            <a href="/cobertura/mapa/" class="nav-tab active"><span class="ico">◉</span> Mapa</a>
+            <a href="/cobertura/dashboard/" class="nav-tab"><span class="ico">▭</span> Dashboard</a>
+            <a href="/cobertura/upload/" class="nav-tab"><span class="ico">↑</span> Upload</a>
+            <a href="/cobertura/bulk-query/" class="nav-tab"><span class="ico">≡</span> CSV</a>
+            <a href="/cobertura/2fa/status/" class="nav-tab"><span class="ico">⚿</span> Seguridad</a>
         </div>
+        <button class="btn-logout" onclick="logout()">Salir →</button>
     </div>
 
     <div class="container">
-        <!-- Sidebar -->
         <div class="sidebar">
-            <!-- Search Panel -->
-            <div class="search-panel">
-                <div class="search-tabs">
-                    <button class="tab active" onclick="switchTab('direccion')">
-                        <i class="fas fa-map-marker-alt"></i> Por Dirección
-                    </button>
-                    <button class="tab" onclick="switchTab('coordenadas')">
-                        <i class="fas fa-crosshairs"></i> Por Coordenadas
-                    </button>
+            <!-- ISP Filters Panel -->
+            <div class="isp-filters-panel">
+                <div class="isp-filters-head">
+                    <div class="search-tag">// Filtros de visualización</div>
+                    <div class="search-title">Proveedores ISP</div>
                 </div>
-
-                <!-- Tab: Búsqueda por Dirección -->
-                <div id="tab-direccion" class="tab-content active">
-                    <div class="input-group">
-                        <label for="direccion"><i class="fas fa-search"></i> Dirección</label>
-                        <input type="text" id="direccion" placeholder="Ej: Calle 10 #20-30, Medellín">
+                <div id="isp-filters-list">
+                    <div style="text-align:center;padding:20px;color:var(--ink-3);font-size:12px">
+                        <span class="spinner"></span> Cargando proveedores...
                     </div>
-                    <button class="btn-search" onclick="buscarPorDireccion()">
-                        <i class="fas fa-search"></i> Consultar Cobertura
-                    </button>
                 </div>
-
-                <!-- Tab: Búsqueda por Coordenadas -->
-                <div id="tab-coordenadas" class="tab-content">
-                    <div class="input-group">
-                        <label for="latitud"><i class="fas fa-arrows-alt-v"></i> Latitud</label>
-                        <input type="number" id="latitud" step="any" placeholder="Ej: 6.2442">
-                    </div>
-                    <div class="input-group">
-                        <label for="longitud"><i class="fas fa-arrows-alt-h"></i> Longitud</label>
-                        <input type="number" id="longitud" step="any" placeholder="Ej: -75.5812">
-                    </div>
-                    <button class="btn-search" onclick="buscarPorCoordenadas()">
-                        <i class="fas fa-search"></i> Consultar Cobertura
-                    </button>
+                <div class="isp-filter-actions">
+                    <button class="btn-filter-action" onclick="selectAllISPs()">Todos</button>
+                    <button class="btn-filter-action" onclick="deselectAllISPs()">Ninguno</button>
                 </div>
-
-                <div class="loading"><i class="fas fa-spinner fa-spin"></i> Consultando cobertura...</div>
             </div>
 
-            <!-- Results Panel -->
+            <div class="search-panel">
+                <div class="search-head">
+                    <div class="search-tag">// Consulta puntual</div>
+                    <div class="search-title">Consultar cobertura en un punto</div>
+                </div>
+
+                <div class="search-tabs">
+                    <button class="tab active" onclick="switchTab('direccion')"><span class="ico">@</span> Dirección</button>
+                    <button class="tab" onclick="switchTab('coordenadas')"><span class="ico">⌖</span> Coordenadas</button>
+                </div>
+
+                <div id="tab-direccion" class="tab-content active">
+                    <div class="input-group">
+                        <label for="direccion">Dirección</label>
+                        <input type="text" id="direccion" placeholder="Calle 10 #20-30, Medellín">
+                    </div>
+                    <button class="btn-search" onclick="buscarPorDireccion()">Consultar cobertura <span class="arr">→</span></button>
+                </div>
+
+                <div id="tab-coordenadas" class="tab-content">
+                    <div class="input-group">
+                        <label for="latitud">Latitud</label>
+                        <input type="number" id="latitud" step="any" placeholder="6.2442">
+                    </div>
+                    <div class="input-group">
+                        <label for="longitud">Longitud</label>
+                        <input type="number" id="longitud" step="any" placeholder="-75.5812">
+                    </div>
+                    <button class="btn-search" onclick="buscarPorCoordenadas()">Consultar cobertura <span class="arr">→</span></button>
+                </div>
+
+                <div class="loading"><span class="spinner"></span>Consultando cobertura...</div>
+            </div>
+
             <div class="results-panel">
                 <div id="results">
-                    <p style="color: #95a5a6; text-align: center; margin-top: 50px;">
-                        <i class="fas fa-info-circle" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
-                        Haz una búsqueda o haz clic en el mapa para consultar cobertura
-                    </p>
+                    <div class="results-empty">
+                        <div class="icon-box">⌖</div>
+                        Haz una búsqueda o haz clic en el mapa para consultar cobertura.
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Map -->
         <div class="map-container">
             <div id="map"></div>
-            <div class="map-info">
-                <i class="fas fa-mouse-pointer" style="color: #667eea;"></i>
-                Haz clic en cualquier punto del mapa para consultar cobertura
+            <div class="map-legend">
+                <div class="map-legend-title">// Leyenda</div>
+                <div class="legend-row"><span class="legend-dot" style="background:var(--node)"></span>Nodos</div>
+                <div class="legend-row"><span class="legend-dot" style="background:var(--route)"></span>Rutas</div>
+                <div class="legend-row"><span class="legend-dot" style="background:var(--area)"></span>Áreas</div>
             </div>
+            <div class="map-info">Clic en el mapa para consultar</div>
         </div>
     </div>
 
@@ -532,8 +249,9 @@
         let map;
         let marker;
         let routesPolylines = [];
+        let ispFilters = {}; // {isp_name: {checked: true, count: 123}}
+        let currentResults = null; // Store last query results for filtering
 
-        // Inicializar mapa centrado en Medellín
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: 6.2442, lng: -75.5812 },
@@ -542,27 +260,100 @@
                 streetViewControl: true,
                 fullscreenControl: true
             });
-
-            // Click en el mapa para consultar
-            map.addListener('click', (e) => {
-                const lat = e.latLng.lat();
-                const lng = e.latLng.lng();
-                consultarCobertura(lat, lng);
-            });
-
-            // Autocompletar dirección
+            map.addListener('click', (e) => { consultarCobertura(e.latLng.lat(), e.latLng.lng()); });
             const input = document.getElementById('direccion');
-            const autocomplete = new google.maps.places.Autocomplete(input, {
+            new google.maps.places.Autocomplete(input, {
                 componentRestrictions: { country: 'co' },
                 fields: ['geometry', 'formatted_address']
             });
+            loadISPFilters();
         }
 
-        // Cambiar tabs
+        async function loadISPFilters() {
+            try {
+                const response = await fetch('/cobertura/api/dashboard/', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    const isps = data.por_proveedor || [];
+                    
+                    ispFilters = {};
+                    isps.forEach(isp => {
+                        const name = isp.proveedor || 'Sin proveedor';
+                        ispFilters[name] = { checked: true, count: isp.cantidad };
+                    });
+                    
+                    renderISPFilters();
+                }
+            } catch (error) {
+                console.error('Error loading ISP filters:', error);
+            }
+        }
+
+        function renderISPFilters() {
+            const container = document.getElementById('isp-filters-list');
+            let html = '';
+            
+            Object.keys(ispFilters).forEach(ispName => {
+                const filter = ispFilters[ispName];
+                html += `
+                    <div class="isp-filter-option" onclick="toggleISPFilter('${ispName}')">
+                        <div class="isp-filter-checkbox ${filter.checked ? 'checked' : ''}" id="checkbox-${ispName.replace(/\s/g, '_')}"></div>
+                        <div class="isp-filter-label">${ispName}</div>
+                        <div class="isp-filter-count">${filter.count.toLocaleString()}</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function toggleISPFilter(ispName) {
+            ispFilters[ispName].checked = !ispFilters[ispName].checked;
+            renderISPFilters();
+            
+            // Re-render current results with filter applied
+            if (currentResults) {
+                applyISPFiltersToResults();
+            }
+        }
+
+        function selectAllISPs() {
+            Object.keys(ispFilters).forEach(isp => {
+                ispFilters[isp].checked = true;
+            });
+            renderISPFilters();
+            if (currentResults) applyISPFiltersToResults();
+        }
+
+        function deselectAllISPs() {
+            Object.keys(ispFilters).forEach(isp => {
+                ispFilters[isp].checked = false;
+            });
+            renderISPFilters();
+            if (currentResults) applyISPFiltersToResults();
+        }
+
+        function applyISPFiltersToResults() {
+            if (!currentResults) return;
+            
+            // Filter results based on selected ISPs
+            const filteredData = {
+                ...currentResults,
+                isps_disponibles: currentResults.isps_disponibles.filter(isp => ispFilters[isp]?.checked),
+                nodos_cercanos: currentResults.nodos_cercanos?.filter(n => ispFilters[n.proveedor]?.checked) || [],
+                rutas_cercanas: currentResults.rutas_cercanas?.filter(r => ispFilters[r.proveedor]?.checked) || [],
+                areas_cercanas: currentResults.areas_cercanas?.filter(a => ispFilters[a.proveedor]?.checked) || []
+            };
+            
+            filteredData.total_isps = filteredData.isps_disponibles.length;
+            filteredData.tiene_cobertura = filteredData.total_isps > 0;
+            
+            mostrarResultados(filteredData, currentResults._lat, currentResults._lng);
+        }
+
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-
             if (tab === 'direccion') {
                 document.querySelectorAll('.tab')[0].classList.add('active');
                 document.getElementById('tab-direccion').classList.add('active');
@@ -572,403 +363,216 @@
             }
         }
 
-        // Toggle collapsible
         function toggleCollapsible(id) {
-            const content = document.getElementById(id);
-            const icon = document.getElementById(id + '-icon');
-
-            content.classList.toggle('open');
-            icon.classList.toggle('open');
+            document.getElementById(id).classList.toggle('open');
+            document.getElementById(id + '-icon').classList.toggle('open');
         }
 
-        // Buscar por dirección
         async function buscarPorDireccion() {
             const direccion = document.getElementById('direccion').value;
-            if (!direccion) {
-                alert('Por favor ingresa una dirección');
-                return;
-            }
-
+            if (!direccion) { alert('Por favor ingresa una dirección'); return; }
             showLoading(true);
-
             try {
-                const response = await fetch(`/cobertura/api/geocodificar/?direccion=${encodeURIComponent(direccion)}`, {
-                    credentials: 'include'
-                });
-
+                const response = await fetch(`/cobertura/api/geocodificar/?direccion=${encodeURIComponent(direccion)}`, { credentials: 'include' });
                 if (response.ok) {
                     const data = await response.json();
                     if (data.resultados && data.resultados.length > 0) {
                         const resultado = data.resultados[0];
                         consultarCobertura(resultado.latitud, resultado.longitud);
-                    } else {
-                        alert('No se encontró la dirección');
-                    }
-                } else {
-                    handleError(response);
-                }
-            } catch (error) {
-                alert('Error al buscar dirección');
-                console.error(error);
-            } finally {
-                showLoading(false);
-            }
+                    } else { alert('No se encontró la dirección'); }
+                } else { handleError(response); }
+            } catch (error) { alert('Error al buscar dirección'); console.error(error); }
+            finally { showLoading(false); }
         }
 
-        // Buscar por coordenadas
         function buscarPorCoordenadas() {
             const lat = parseFloat(document.getElementById('latitud').value);
             const lng = parseFloat(document.getElementById('longitud').value);
-
-            if (isNaN(lat) || isNaN(lng)) {
-                alert('Por favor ingresa coordenadas válidas');
-                return;
-            }
-
+            if (isNaN(lat) || isNaN(lng)) { alert('Por favor ingresa coordenadas válidas'); return; }
             consultarCobertura(lat, lng);
         }
 
-        // Consultar cobertura
         async function consultarCobertura(lat, lng) {
             showLoading(true);
-
-            // Actualizar mapa y marcador
             map.setCenter({ lat, lng });
             if (marker) marker.setMap(null);
-            marker = new google.maps.Marker({
-                position: { lat, lng },
-                map: map,
-                animation: google.maps.Animation.DROP
-            });
-
-            // Limpiar rutas anteriores
+            marker = new google.maps.Marker({ position: { lat, lng }, map: map, animation: google.maps.Animation.DROP });
             routesPolylines.forEach(p => p.setMap(null));
             routesPolylines = [];
-
             try {
                 const response = await fetch('/cobertura/api/consultar-cobertura/', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        latitud: lat,
-                        longitud: lng,
-                        radio_metros: 1000
-                    })
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ latitud: lat, longitud: lng, radio_metros: 1000 })
                 });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    mostrarResultados(data, lat, lng);
-                } else {
-                    handleError(response);
+                if (response.ok) { 
+                    const data = await response.json(); 
+                    data._lat = lat; // Store for filter re-application
+                    data._lng = lng;
+                    currentResults = data;
+                    applyISPFiltersToResults();
                 }
-            } catch (error) {
-                alert('Error al consultar cobertura');
-                console.error(error);
-            } finally {
-                showLoading(false);
-            }
+                else { handleError(response); }
+            } catch (error) { alert('Error al consultar cobertura'); console.error(error); }
+            finally { showLoading(false); }
         }
 
-        // Mostrar resultados AGRUPADOS POR TIPO
         function mostrarResultados(data, lat, lng) {
             const resultsDiv = document.getElementById('results');
             const tieneCob = data.tiene_cobertura;
-
             let html = `
                 <div class="result-card ${tieneCob ? 'has-coverage' : 'no-coverage'}">
-                    <div class="coverage-status ${tieneCob ? 'yes' : 'no'}">
-                        ${tieneCob ? '<i class="fas fa-check-circle"></i> HAY COBERTURA' : '<i class="fas fa-times-circle"></i> SIN COBERTURA'}
-                    </div>
-                    <p><strong><i class="fas fa-map-pin"></i> Coordenadas:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>
-                    ${data.distancia_minima_metros ? `<p><strong><i class="fas fa-ruler"></i> Distancia a elemento más cercano:</strong> ${data.distancia_minima_metros}m</p>` : ''}
+                    <div class="coverage-status ${tieneCob ? 'yes' : 'no'}">${tieneCob ? 'Hay cobertura' : 'Sin cobertura'}</div>
+                    <div class="meta-row"><strong>Coordenadas</strong><span>${lat.toFixed(6)}, ${lng.toFixed(6)}</span></div>
+                    ${data.distancia_minima_metros ? `<div class="meta-row"><strong>Más cercano</strong><span>${data.distancia_minima_metros}m</span></div>` : ''}
             `;
-
-            // ISPs Disponibles - Collapsible
             if (data.total_isps > 0) {
                 html += `
                     <div class="collapsible-section">
                         <div class="collapsible-header" onclick="toggleCollapsible('isp-list')">
-                            <span><i class="fas fa-signal"></i> ISPs Disponibles (${data.total_isps})</span>
-                            <span id="isp-list-icon" class="collapsible-icon"><i class="fas fa-chevron-down"></i></span>
+                            <span>ISPs disponibles · ${data.total_isps}</span>
+                            <span id="isp-list-icon" class="collapsible-icon">▾</span>
                         </div>
                         <div id="isp-list" class="collapsible-content">
                             <div class="isp-list">
-                                ${data.isps_disponibles.map(isp => `<div class="isp-item"><i class="fas fa-wifi"></i> ${isp}</div>`).join('')}
+                                ${data.isps_disponibles.map(isp => `<div class="isp-item">${isp}</div>`).join('')}
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
-
             html += '</div>';
 
-            // NODOS CERCANOS (NARANJA) - Colapsable
             if (data.nodos_cercanos && data.nodos_cercanos.length > 0) {
                 html += `
                     <div class="geometry-section nodos">
                         <div class="geometry-header nodos" onclick="toggleCollapsible('nodos-list')">
-                            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
-                                <span style="font-size: 24px;">📍</span>
-                                <span>Nodos cercanos (${data.nodos_cercanos.length})</span>
-                            </div>
-                            <span id="nodos-list-icon" class="collapsible-icon open"><i class="fas fa-chevron-down"></i></span>
+                            <div class="lhs"><span class="glyph">●</span><span>Nodos · ${data.nodos_cercanos.length}</span></div>
+                            <span id="nodos-list-icon" class="collapsible-icon open">▾</span>
                         </div>
                         <div id="nodos-list" class="collapsible-content open">
                             <div class="geometry-list">
-                                <div class="geometry-hint nodos">
-                                    <i class="fas fa-hand-pointer"></i>
-                                    Haz clic en cualquier nodo para verlo en el mapa
-                                </div>
+                                <div class="geometry-hint">// Clic en un nodo para verlo en el mapa</div>
                                 ${data.nodos_cercanos.map(nodo => `
                                     <div class="geometry-item nodos" onclick="verGeometriaEnMapa(${nodo.id})">
-                                        <div><strong>📍 ${nodo.proveedor}</strong> - ${nodo.nombre}</div>
-                                        <div class="geometry-distance"><i class="fas fa-location-arrow"></i> ${nodo.distancia_metros}m de distancia</div>
-                                    </div>
-                                `).join('')}
+                                        <div class="geometry-item-title"><span class="prov">${nodo.proveedor}</span> ${nodo.nombre}</div>
+                                        <div class="geometry-distance">→ ${nodo.distancia_metros}m</div>
+                                    </div>`).join('')}
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
-
-            // RUTAS CERCANAS (AZUL) - Colapsable
             if (data.rutas_cercanas && data.rutas_cercanas.length > 0) {
                 html += `
                     <div class="geometry-section rutas">
                         <div class="geometry-header rutas" onclick="toggleCollapsible('rutas-list')">
-                            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
-                                <span style="font-size: 24px;">🛣️</span>
-                                <span>Rutas cercanas (${data.rutas_cercanas.length})</span>
-                            </div>
-                            <span id="rutas-list-icon" class="collapsible-icon open"><i class="fas fa-chevron-down"></i></span>
+                            <div class="lhs"><span class="glyph">▬</span><span>Rutas · ${data.rutas_cercanas.length}</span></div>
+                            <span id="rutas-list-icon" class="collapsible-icon open">▾</span>
                         </div>
                         <div id="rutas-list" class="collapsible-content open">
                             <div class="geometry-list">
-                                <div class="geometry-hint rutas">
-                                    <i class="fas fa-hand-pointer"></i>
-                                    Haz clic en cualquier ruta para verla en el mapa
-                                </div>
+                                <div class="geometry-hint">// Clic en una ruta para verla en el mapa</div>
                                 ${data.rutas_cercanas.map(ruta => `
                                     <div class="geometry-item rutas" onclick="verGeometriaEnMapa(${ruta.id})">
-                                        <div><strong>🛣️ ${ruta.proveedor}</strong> - ${ruta.nombre}</div>
-                                        <div class="geometry-distance"><i class="fas fa-location-arrow"></i> ${ruta.distancia_metros}m de distancia</div>
-                                    </div>
-                                `).join('')}
+                                        <div class="geometry-item-title"><span class="prov">${ruta.proveedor}</span> ${ruta.nombre}</div>
+                                        <div class="geometry-distance">→ ${ruta.distancia_metros}m</div>
+                                    </div>`).join('')}
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
-
-            // ÁREAS CERCANAS (AMARILLO) - Colapsable
             if (data.areas_cercanas && data.areas_cercanas.length > 0) {
                 html += `
                     <div class="geometry-section areas">
                         <div class="geometry-header areas" onclick="toggleCollapsible('areas-list')">
-                            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
-                                <span style="font-size: 24px;">🗺️</span>
-                                <span>Áreas de cobertura (${data.areas_cercanas.length})</span>
-                            </div>
-                            <span id="areas-list-icon" class="collapsible-icon open"><i class="fas fa-chevron-down"></i></span>
+                            <div class="lhs"><span class="glyph">▰</span><span>Áreas · ${data.areas_cercanas.length}</span></div>
+                            <span id="areas-list-icon" class="collapsible-icon open">▾</span>
                         </div>
                         <div id="areas-list" class="collapsible-content open">
                             <div class="geometry-list">
-                                <div class="geometry-hint areas">
-                                    <i class="fas fa-hand-pointer"></i>
-                                    Haz clic en cualquier área para verla en el mapa
-                                </div>
+                                <div class="geometry-hint">// Clic en un área para verla en el mapa</div>
                                 ${data.areas_cercanas.map(area => `
                                     <div class="geometry-item areas" onclick="verGeometriaEnMapa(${area.id})">
-                                        <div><strong>🗺️ ${area.proveedor}</strong> - ${area.nombre}</div>
-                                        <div class="geometry-distance"><i class="fas fa-location-arrow"></i> ${area.distancia_metros}m de distancia</div>
-                                    </div>
-                                `).join('')}
+                                        <div class="geometry-item-title"><span class="prov">${area.proveedor}</span> ${area.nombre}</div>
+                                        <div class="geometry-distance">→ ${area.distancia_metros}m</div>
+                                    </div>`).join('')}
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
-
             resultsDiv.innerHTML = html;
         }
 
-        // Ver geometría en el mapa
         async function verGeometriaEnMapa(geometriaId) {
             try {
-                const url = `/cobertura/api/coberturas/${geometriaId}/`;
-
-                const response = await fetch(url, {
-                    credentials: 'include'
-                });
-
+                const response = await fetch(`/cobertura/api/coberturas/${geometriaId}/`, { credentials: 'include' });
                 if (response.ok) {
                     const data = await response.json();
-
-                    // Limpiar geometrías anteriores
                     routesPolylines.forEach(p => p.setMap(null));
                     routesPolylines = [];
-
-                    // Dibujar la geometría en el mapa
                     if (data.geometry) {
                         const geometry = data.geometry;
-
-                        // Procesar según el tipo de geometría
                         if (geometry.type === 'LineString') {
-                            const path = geometry.coordinates.map(coord => ({
-                                lat: coord[1],
-                                lng: coord[0]
-                            }));
-
-                            const polyline = new google.maps.Polyline({
-                                path: path,
-                                geodesic: true,
-                                strokeColor: '#3b82f6',
-                                strokeOpacity: 1.0,
-                                strokeWeight: 3,
-                                map: map
-                            });
-
-                            routesPolylines.push(polyline);
-
+                            const path = geometry.coordinates.map(c => ({ lat: c[1], lng: c[0] }));
+                            const pl = new google.maps.Polyline({ path, geodesic: true, strokeColor: '#3b5fcf', strokeOpacity: 1, strokeWeight: 3, map });
+                            routesPolylines.push(pl);
                             const bounds = new google.maps.LatLngBounds();
-                            path.forEach(point => bounds.extend(point));
+                            path.forEach(p => bounds.extend(p));
                             map.fitBounds(bounds);
-                        }
-                        else if (geometry.type === 'MultiLineString') {
-                            geometry.coordinates.forEach((lineCoords) => {
-                                const path = lineCoords.map(coord => ({
-                                    lat: coord[1],
-                                    lng: coord[0]
-                                }));
-
-                                const polyline = new google.maps.Polyline({
-                                    path: path,
-                                    geodesic: true,
-                                    strokeColor: '#3b82f6',
-                                    strokeOpacity: 1.0,
-                                    strokeWeight: 3,
-                                    map: map
-                                });
-
-                                routesPolylines.push(polyline);
+                        } else if (geometry.type === 'MultiLineString') {
+                            geometry.coordinates.forEach(lc => {
+                                const path = lc.map(c => ({ lat: c[1], lng: c[0] }));
+                                const pl = new google.maps.Polyline({ path, geodesic: true, strokeColor: '#3b5fcf', strokeOpacity: 1, strokeWeight: 3, map });
+                                routesPolylines.push(pl);
                             });
-
                             const bounds = new google.maps.LatLngBounds();
-                            geometry.coordinates.forEach(lineCoords => {
-                                lineCoords.forEach(coord => {
-                                    bounds.extend({ lat: coord[1], lng: coord[0] });
-                                });
-                            });
+                            geometry.coordinates.forEach(lc => lc.forEach(c => bounds.extend({ lat: c[1], lng: c[0] })));
                             map.fitBounds(bounds);
-                        }
-                        else if (geometry.type === 'Point') {
-                            const marker = new google.maps.Marker({
-                                position: { lat: geometry.coordinates[1], lng: geometry.coordinates[0] },
-                                map: map,
-                                icon: {
-                                    path: google.maps.SymbolPath.CIRCLE,
-                                    scale: 8,
-                                    fillColor: '#f97316',
-                                    fillOpacity: 1,
-                                    strokeColor: '#FFFFFF',
-                                    strokeWeight: 2
-                                }
-                            });
-                            routesPolylines.push(marker);
+                        } else if (geometry.type === 'Point') {
+                            const m = new google.maps.Marker({ position: { lat: geometry.coordinates[1], lng: geometry.coordinates[0] }, map, icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#c87a2a', fillOpacity: 1, strokeColor: '#FFF', strokeWeight: 2 } });
+                            routesPolylines.push(m);
                             map.setCenter({ lat: geometry.coordinates[1], lng: geometry.coordinates[0] });
                             map.setZoom(16);
-                        }
-                        else if (geometry.type === 'MultiPoint') {
-                            geometry.coordinates.forEach(coord => {
-                                const marker = new google.maps.Marker({
-                                    position: { lat: coord[1], lng: coord[0] },
-                                    map: map,
-                                    icon: {
-                                        path: google.maps.SymbolPath.CIRCLE,
-                                        scale: 8,
-                                        fillColor: '#f97316',
-                                        fillOpacity: 1,
-                                        strokeColor: '#FFFFFF',
-                                        strokeWeight: 2
-                                    }
-                                });
-                                routesPolylines.push(marker);
+                        } else if (geometry.type === 'MultiPoint') {
+                            geometry.coordinates.forEach(c => {
+                                const m = new google.maps.Marker({ position: { lat: c[1], lng: c[0] }, map, icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#c87a2a', fillOpacity: 1, strokeColor: '#FFF', strokeWeight: 2 } });
+                                routesPolylines.push(m);
                             });
-
                             if (geometry.coordinates.length > 0) {
                                 map.setCenter({ lat: geometry.coordinates[0][1], lng: geometry.coordinates[0][0] });
                                 map.setZoom(16);
                             }
-                        }
-                        else if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
+                        } else if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
                             const processPolygon = (coords) => {
-                                const path = coords[0].map(coord => ({
-                                    lat: coord[1],
-                                    lng: coord[0]
-                                }));
-
-                                const polygon = new google.maps.Polygon({
-                                    paths: path,
-                                    strokeColor: '#eab308',
-                                    strokeOpacity: 0.8,
-                                    strokeWeight: 2,
-                                    fillColor: '#eab308',
-                                    fillOpacity: 0.2,
-                                    map: map
-                                });
-
+                                const path = coords[0].map(c => ({ lat: c[1], lng: c[0] }));
+                                const polygon = new google.maps.Polygon({ paths: path, strokeColor: '#a37810', strokeOpacity: 0.8, strokeWeight: 2, fillColor: '#d4a82a', fillOpacity: 0.2, map });
                                 routesPolylines.push(polygon);
                                 return path;
                             };
-
                             const bounds = new google.maps.LatLngBounds();
-
                             if (geometry.type === 'Polygon') {
-                                const path = processPolygon(geometry.coordinates);
-                                path.forEach(point => bounds.extend(point));
+                                processPolygon(geometry.coordinates).forEach(p => bounds.extend(p));
                             } else {
-                                geometry.coordinates.forEach(polygonCoords => {
-                                    const path = processPolygon(polygonCoords);
-                                    path.forEach(point => bounds.extend(point));
-                                });
+                                geometry.coordinates.forEach(pc => processPolygon(pc).forEach(p => bounds.extend(p)));
                             }
-
                             map.fitBounds(bounds);
                         }
                     }
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al visualizar la geometría');
-            }
+            } catch (error) { console.error('Error:', error); alert('Error al visualizar la geometría'); }
         }
 
-        // Manejo de errores
         function handleError(response) {
-            if (response.status === 401 || response.status === 403) {
-                alert('Sesión expirada. Por favor inicia sesión nuevamente.');
-                logout();
-            } else {
-                alert('Error en la consulta. Intenta nuevamente.');
-            }
+            if (response.status === 401 || response.status === 403) { alert('Sesión expirada.'); logout(); }
+            else { alert('Error en la consulta. Intenta nuevamente.'); }
         }
 
-        // Mostrar/ocultar loading
         function showLoading(show) {
             document.querySelector('.loading').style.display = show ? 'block' : 'none';
             document.querySelectorAll('.btn-search').forEach(btn => btn.disabled = show);
         }
 
-        // Logout
-        function logout() {
-            window.location.href = '/cobertura/logout/';
-        }
+        function logout() { window.location.href = '/cobertura/logout/'; }
 
-        // Inicializar
         window.onload = initMap;
     </script>
 </body>

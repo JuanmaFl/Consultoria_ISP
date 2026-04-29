@@ -3,206 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificación 2FA - Sistema ISP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Verificación 2FA · Cobertura ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+        :root{
+            --bg: oklch(0.985 0.004 260);
+            --surface:#fff;
+            --ink: oklch(0.22 0.02 260);
+            --ink-2: oklch(0.45 0.015 260);
+            --ink-3: oklch(0.62 0.012 260);
+            --line: oklch(0.92 0.008 260);
+            --line-2: oklch(0.86 0.01 260);
+            --accent: oklch(0.52 0.16 248);
+            --accent-bg: oklch(0.97 0.02 248);
+            --success: oklch(0.55 0.14 155);
+            --success-bg: oklch(0.96 0.04 155);
+            --danger: oklch(0.55 0.18 25);
+            --danger-bg: oklch(0.97 0.025 25);
+            --mono:'JetBrains Mono',ui-monospace,monospace;
         }
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 450px;
-            width: 100%;
-            padding: 40px;
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Inter',system-ui,sans-serif;
+            background:var(--bg);
+            color:var(--ink);
+            min-height:100vh;
+            display:grid;place-items:center;
+            padding:24px;
+            background-image:
+                linear-gradient(to right, oklch(0.94 0.008 260 / .5) 1px, transparent 1px),
+                linear-gradient(to bottom, oklch(0.94 0.008 260 / .5) 1px, transparent 1px);
+            background-size:32px 32px;
+            -webkit-font-smoothing:antialiased;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
+        .card{
+            background:var(--surface);
+            border:1px solid var(--line);
+            border-radius:10px;
+            max-width:420px;
+            width:100%;
+            padding:32px;
         }
-        .header-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 40px;
-            color: white;
-            animation: pulse 2s infinite;
+        .top{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            margin-bottom:24px;
+            padding-bottom:16px;
+            border-bottom:1px solid var(--line);
         }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600}
+        .brand-mark{
+            width:24px;height:24px;border-radius:5px;background:var(--ink);
+            display:grid;place-items:center;color:var(--bg);
+            font-family:var(--mono);font-size:11px;font-weight:700;
         }
-        h1 {
-            color: #2c3e50;
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 10px;
+        .step-pill{
+            font-family:var(--mono);font-size:10px;
+            text-transform:uppercase;letter-spacing:0.1em;
+            color:var(--accent);background:var(--accent-bg);
+            padding:4px 8px;border-radius:4px;
         }
-        .subtitle {
-            color: #7f8c8d;
-            font-size: 15px;
+        h1{font-size:22px;font-weight:600;letter-spacing:-0.015em;margin-bottom:6px}
+        .lede{color:var(--ink-2);font-size:13px;line-height:1.5;margin-bottom:24px}
+        .info-box{
+            background:var(--accent-bg);
+            border:1px solid oklch(0.88 0.04 248);
+            border-radius:6px;
+            padding:11px 13px;
+            font-size:12px;
+            color:oklch(0.4 0.16 248);
+            margin-bottom:20px;
+            line-height:1.5;
         }
-        .form-group {
-            margin-bottom: 25px;
+        label{
+            display:block;font-size:12px;font-weight:500;
+            margin-bottom:8px;color:var(--ink);
+            font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;
         }
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 14px;
+        .otp-input{
+            width:100%;
+            padding:18px;
+            border:1px solid var(--line-2);
+            border-radius:6px;
+            font-size:28px;
+            letter-spacing:14px;
+            text-align:center;
+            font-family:var(--mono);
+            font-weight:600;
+            background:var(--surface);
+            color:var(--ink);
+            text-indent:14px;
         }
-        input[type="text"] {
-            width: 100%;
-            padding: 18px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 24px;
-            letter-spacing: 8px;
-            text-align: center;
-            font-family: 'Courier New', monospace;
-            transition: all 0.3s;
-            font-weight: 700;
+        .otp-input:focus{
+            outline:none;border-color:var(--accent);
+            box-shadow:0 0 0 3px oklch(0.52 0.16 248 / .12);
         }
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        .form-group{margin-bottom:18px}
+        .btn{
+            width:100%;padding:12px;
+            background:var(--ink);color:var(--surface);
+            border:1px solid var(--ink);
+            border-radius:6px;
+            font-size:14px;font-weight:500;font-family:inherit;
+            cursor:pointer;transition:opacity .15s;
+            display:flex;align-items:center;justify-content:center;gap:8px;
         }
-        .btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+        .btn:hover{opacity:.88}
+        .btn:disabled{opacity:.5;cursor:not-allowed}
+        .alert{
+            padding:10px 12px;border-radius:6px;
+            margin-bottom:16px;font-size:13px;display:none;
+            border:1px solid;
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        .alert.show{display:block}
+        .alert-success{background:var(--success-bg);color:var(--success);border-color:oklch(0.85 0.05 155)}
+        .alert-error{background:var(--danger-bg);color:var(--danger);border-color:oklch(0.85 0.05 25)}
+        .back-link{
+            display:block;text-align:center;margin-top:18px;
+            color:var(--ink-3);text-decoration:none;font-size:12px;
+            font-family:var(--mono);
         }
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
+        .back-link:hover{color:var(--ink)}
+        .spinner{
+            display:inline-block;width:12px;height:12px;
+            border:1.5px solid currentColor;border-right-color:transparent;
+            border-radius:50%;animation:spin .7s linear infinite;
         }
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
-            animation: slideIn 0.3s;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .info-box {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-        .info-box p {
-            color: #0d47a1;
-            font-size: 14px;
-            line-height: 1.6;
-            margin: 0;
-        }
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .back-link:hover {
-            text-decoration: underline;
-        }
+        @keyframes spin{to{transform:rotate(360deg)}}
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="header-icon">
-                <i class="fas fa-lock"></i>
-            </div>
-            <h1>Verificación de Dos Factores</h1>
-            <p class="subtitle">Ingresa el código de tu aplicación autenticadora</p>
+    <div class="card">
+        <div class="top">
+            <div class="brand"><div class="brand-mark">C</div>Cobertura ISP</div>
+            <span class="step-pill">2FA · paso 2/2</span>
         </div>
+
+        <h1>Verifica tu identidad</h1>
+        <p class="lede">Ingresa el código de 6 dígitos que muestra tu app autenticadora.</p>
 
         <div id="alert" class="alert"></div>
 
         <div class="info-box">
-            <p>
-                <i class="fas fa-info-circle"></i>
-                Abre tu app autenticadora (Google Authenticator, Authy, etc.) y ingresa el código de 6 dígitos.
-            </p>
+            Abre Google Authenticator, Authy o Microsoft Authenticator y copia el código actual.
         </div>
 
         <form id="verify-form">
             {% csrf_token %}
             <div class="form-group">
-                <label for="code">
-                    <i class="fas fa-key"></i> Código de Verificación
-                </label>
+                <label for="code">Código de verificación</label>
                 <input
                     type="text"
                     id="code"
                     name="code"
+                    class="otp-input"
                     maxlength="6"
                     pattern="[0-9]{6}"
                     placeholder="000000"
                     required
                     autocomplete="off"
                     autofocus
+                    inputmode="numeric"
                 >
             </div>
             <button type="submit" class="btn" id="verify-btn">
-                <i class="fas fa-shield-alt"></i>
                 <span>Verificar</span>
+                <span style="font-family:var(--mono)">→</span>
             </button>
         </form>
 
-        <a href="/cobertura/login/" class="back-link">
-            <i class="fas fa-arrow-left"></i> Volver al login
-        </a>
+        <a href="/cobertura/login/" class="back-link">← Volver al login</a>
     </div>
 
     <script>
@@ -215,16 +186,14 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             console.log('[DEBUG] Form submitted');
             console.log('[DEBUG] Code value:', codeInput.value);
 
             verifyBtn.disabled = true;
-            verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Verificando...</span>';
+            verifyBtn.innerHTML = '<span class="spinner"></span><span>Verificando...</span>';
 
             try {
                 console.log('[DEBUG] Sending request to API...');
-                
                 const response = await fetch('/cobertura/api/2fa/verify-login/', {
                     method: 'POST',
                     credentials: 'include',
@@ -232,66 +201,46 @@
                         'Content-Type': 'application/json',
                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                     },
-                    body: JSON.stringify({
-                        code: codeInput.value
-                    })
+                    body: JSON.stringify({ code: codeInput.value })
                 });
 
                 console.log('[DEBUG] Response status:', response.status);
-                console.log('[DEBUG] Response OK:', response.ok);
-
                 const data = await response.json();
                 console.log('[DEBUG] Response data:', data);
 
                 if (data.success) {
                     console.log('[DEBUG] SUCCESS! Redirect URL:', data.redirect_url);
-                    
-                    alertDiv.className = 'alert alert-success';
-                    alertDiv.style.display = 'block';
-                    alertDiv.innerHTML = '<i class="fas fa-check-circle"></i> Código correcto. Redirigiendo...';
-
+                    alertDiv.className = 'alert alert-success show';
+                    alertDiv.innerHTML = '✓ Código correcto. Redirigiendo...';
                     setTimeout(() => {
                         console.log('[DEBUG] Executing redirect NOW to:', data.redirect_url);
                         window.location.href = data.redirect_url;
-                        console.log('[DEBUG] Redirect executed');
                     }, 1000);
                 } else {
                     console.log('[DEBUG] FAILED:', data.message);
-                    
-                    alertDiv.className = 'alert alert-error';
-                    alertDiv.style.display = 'block';
-                    alertDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + data.message;
-
+                    alertDiv.className = 'alert alert-error show';
+                    alertDiv.innerHTML = '✕ ' + data.message;
                     codeInput.value = '';
                     codeInput.focus();
-
                     verifyBtn.disabled = false;
-                    verifyBtn.innerHTML = '<i class="fas fa-shield-alt"></i> <span>Verificar</span>';
+                    verifyBtn.innerHTML = '<span>Verificar</span><span style="font-family:var(--mono)">→</span>';
                 }
             } catch (error) {
                 console.error('[DEBUG] CATCH ERROR:', error);
-                
-                alertDiv.className = 'alert alert-error';
-                alertDiv.style.display = 'block';
-                alertDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error de conexión. Intenta de nuevo.';
-
+                alertDiv.className = 'alert alert-error show';
+                alertDiv.innerHTML = '✕ Error de conexión. Intenta de nuevo.';
                 verifyBtn.disabled = false;
-                verifyBtn.innerHTML = '<i class="fas fa-shield-alt"></i> <span>Verificar</span>';
+                verifyBtn.innerHTML = '<span>Verificar</span><span style="font-family:var(--mono)">→</span>';
             }
         });
 
-        // Solo permitir números
         codeInput.addEventListener('input', (e) => {
             e.target.value = e.target.value.replace(/[^0-9]/g, '');
         });
-
-        // Auto-submit cuando tenga 6 dígitos
         codeInput.addEventListener('input', (e) => {
             if (e.target.value.length === 6) {
                 console.log('[DEBUG] Auto-submitting form (6 digits reached)');
-                setTimeout(() => {
-                    form.dispatchEvent(new Event('submit'));
-                }, 100);
+                setTimeout(() => { form.dispatchEvent(new Event('submit')); }, 100);
             }
         });
     </script>

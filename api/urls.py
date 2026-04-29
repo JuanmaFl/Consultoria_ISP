@@ -26,6 +26,10 @@ urlpatterns = [
     path('detalle-kmz/<path:archivo_kmz>/', views.detalle_kmz, name='detalle-kmz'),
     path('upload-kmz/', views.upload_kmz, name='upload-kmz'),
     path('listar-kmz/', views.listar_archivos_kmz, name='listar-kmz'),
+    path('listar-proveedores/', views.listar_proveedores, name='listar-proveedores'),
+    
+    # DELETE KMZ - Sprint 2
+    path('delete-kmz/<path:archivo_nombre>/', views.delete_kmz, name='delete-kmz'),
     
     # URLs de 2FA
     path('2fa/setup/', views_2fa.setup_2fa, name='setup-2fa'),
