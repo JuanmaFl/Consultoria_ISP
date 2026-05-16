@@ -207,3 +207,107 @@ class BulkQueryJob(models.Model):
             return 0
         registros_restantes = self.total_registros - self.registros_procesados
         return registros_restantes * 0.5
+
+import hashlib
+import json
+from django.utils import timezone
+from datetime import timedelta
+
+
+class MunicipioData(models.Model):
+    """Cache de datos públicos DANE + MinTIC por municipio"""
+    codigo_dane = models.CharField(max_length=10, unique=True, verbose_name='Código DANE')
+    nombre = models.CharField(max_length=150, verbose_name='Nombre municipio')
+    departamento = models.CharField(max_length=100, verbose_name='Departamento')
+    poblacion_total = models.IntegerField(blank=True, null=True, verbose_name='Población total')
+    hogares = models.IntegerField(blank=True, null=True, verbose_name='Total hogares')
+    nbi_porcentaje = models.FloatField(blank=True, null=True, verbose_name='% NBI')
+    area_km2 = models.FloatField(blank=True, null=True, verbose_name='Área km²')
+    densidad_poblacional = models.FloatField(blank=True, null=True, verbose_name='Densidad hab/km²')
+    mintic_tiene_fibra = models.BooleanField(default=False, verbose_name='Tiene fibra según MinTIC')
+    mintic_proveedores_count = models.IntegerField(default=0, verbose_name='Proveedores MinTIC')
+    mintic_penetracion_pct = models.FloatField(blank=True, null=True, verbose_name='% penetración internet')
+    latitud = models.FloatField(blank=True, null=True)
+    longitud = models.FloatField(blank=True, null=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Datos Municipio'
+        verbose_name_plural = 'Datos Municipios'
+        db_table = 'municipio_data'
+        ordering = ['departamento', 'nombre']
+
+    def __str__(self):
+        return f"{self.nombre} ({self.departamento})"
+
+
+class AnalisisFactibilidad(models.Model):
+    """Análisis de factibilidad generado por OpenAI, cacheado 7 días"""
+
+    TIPO_ZONA_CHOICES = [
+        ('municipio', 'Municipio'),
+        ('departamento', 'Departamento'),
+        ('radio', 'Radio desde punto'),
+    ]
+
+    RECOMENDACION_CHOICES = [
+        ('alta', 'Alta factibilidad'),
+        ('media', 'Factibilidad media'),
+        ('baja', 'Baja factibilidad'),
+        ('saturada', 'Zona saturada'),
+    ]
+
+    usuario = models.ForeignKey('Usuario', on_delete=models.SET_NULL, null=True, verbose_name='Usuario')
+    tipo_zona = models.CharField(max_length=20, choices=TIPO_ZONA_CHOICES, verbose_name='Tipo de zona')
+    zona_nombre = models.CharField(max_length=200, verbose_name='Nombre de la zona')
+    zona_parametros = models.JSONField(verbose_name='Parámetros de la zona')
+    cache_hash = models.CharField(max_length=64, unique=True, verbose_name='Hash para cache')
+
+    # Datos de cobertura ISP en la zona
+    cobertura_isp_count = models.IntegerField(default=0, verbose_name='Registros ISP en zona')
+    isps_presentes = models.JSONField(default=list, verbose_name='ISPs con cobertura')
+    km_fibra_estimados = models.FloatField(blank=True, null=True, verbose_name='Km fibra estimados')
+
+    # Datos demográficos
+    poblacion_zona = models.IntegerField(blank=True, null=True, verbose_name='Población en zona')
+    hogares_zona = models.IntegerField(blank=True, null=True, verbose_name='Hogares en zona')
+    penetracion_actual_pct = models.FloatField(blank=True, null=True, verbose_name='% penetración actual')
+
+    # Resultado IA
+    analisis_texto = models.TextField(verbose_name='Análisis generado por IA')
+    score_factibilidad = models.IntegerField(blank=True, null=True, verbose_name='Score factibilidad 0-100')
+    recomendacion = models.CharField(max_length=20, choices=RECOMENDACION_CHOICES, blank=True, null=True)
+
+    fecha_generacion = models.DateTimeField(auto_now_add=True)
+    fecha_expiracion = models.DateTimeField(verbose_name='Expira el')
+
+    class Meta:
+        verbose_name = 'Análisis de Factibilidad'
+        verbose_name_plural = 'Análisis de Factibilidad'
+        db_table = 'analisis_factibilidad'
+        ordering = ['-fecha_generacion']
+
+    def __str__(self):
+        return f"{self.zona_nombre} — {self.recomendacion} ({self.score_factibilidad}/100)"
+
+    @property
+    def esta_vigente(self):
+        return timezone.now() < self.fecha_expiracion
+
+    @staticmethod
+    def generar_hash(tipo_zona, zona_parametros):
+        contenido = json.dumps({'tipo': tipo_zona, 'params': zona_parametros}, sort_keys=True)
+        return hashlib.sha256(contenido.encode()).hexdigest()
+
+    @staticmethod
+    def get_cache_vigente(tipo_zona, zona_parametros):
+        """Retorna análisis cacheado si existe y no expiró"""
+        cache_hash = AnalisisFactibilidad.generar_hash(tipo_zona, zona_parametros)
+        try:
+            analisis = AnalisisFactibilidad.objects.get(cache_hash=cache_hash)
+            if analisis.esta_vigente:
+                return analisis
+            analisis.delete()
+            return None
+        except AnalisisFactibilidad.DoesNotExist:
+            return None

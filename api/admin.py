@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.gis.admin import GISModelAdmin
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import Usuario, CoberturaISP, ISPUploadToken, BulkQueryJob
+from .models import Usuario, CoberturaISP, ISPUploadToken, BulkQueryJob, MunicipioData, AnalisisFactibilidad
 
 
 @admin.register(Usuario)
@@ -183,3 +183,18 @@ class BulkQueryJobAdmin(admin.ModelAdmin):
             )
         return '-'
     descargar_resultado.short_description = 'Resultado'
+
+@admin.register(MunicipioData)
+class MunicipioDataAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'departamento', 'codigo_dane', 'poblacion_total', 'hogares', 'mintic_tiene_fibra', 'mintic_penetracion_pct']
+    list_filter = ['departamento', 'mintic_tiene_fibra']
+    search_fields = ['nombre', 'departamento', 'codigo_dane']
+    readonly_fields = ['fecha_actualizacion']
+
+
+@admin.register(AnalisisFactibilidad)
+class AnalisisFactibilidadAdmin(admin.ModelAdmin):
+    list_display = ['zona_nombre', 'tipo_zona', 'recomendacion', 'score_factibilidad', 'fecha_generacion', 'fecha_expiracion', 'usuario']
+    list_filter = ['tipo_zona', 'recomendacion']
+    search_fields = ['zona_nombre']
+    readonly_fields = ['cache_hash', 'fecha_generacion']
