@@ -8,6 +8,7 @@ from api import views
 from api import views_2fa
 from api import views_isp_portal
 from api import views_bulk_query
+from api import views_factibilidad
 
 urlpatterns = [
     path('cobertura/admin/', admin.site.urls),
@@ -29,6 +30,9 @@ urlpatterns = [
     
     # Consulta Masiva (template - requiere autenticación)
     path('cobertura/bulk-query/', views_bulk_query.bulk_query_view, name='bulk-query'),
+
+    # Factibilidad - Sprint 3
+    path('cobertura/factibilidad/', views_factibilidad.factibilidad_view, name='factibilidad'),
 ]
 
 if settings.DEBUG:

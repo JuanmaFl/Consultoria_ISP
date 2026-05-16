@@ -5,6 +5,7 @@ from . import views
 from . import views_2fa
 from . import views_isp_portal
 from . import views_bulk_query
+from . import views_factibilidad
 
 router = DefaultRouter()
 router.register(r'usuarios', views.UsuarioViewSet, basename='usuario')
@@ -44,4 +45,10 @@ urlpatterns = [
     # URLs de Consulta Masiva
     path('bulk-query/upload/', views_bulk_query.upload_bulk_query, name='bulk-query-upload'),
     path('bulk-query/status/<int:job_id>/', views_bulk_query.check_job_status, name='bulk-query-status'),
+
+    # Factibilidad - Sprint 3
+    path('factibilidad/municipios/', views_factibilidad.listar_municipios, name='factibilidad-municipios'),
+    path('factibilidad/analizar/', views_factibilidad.generar_analisis, name='factibilidad-analizar'),
+    path('factibilidad/historial/', views_factibilidad.historial_analisis, name='factibilidad-historial'),
+    path('factibilidad/analisis/<int:analisis_id>/', views_factibilidad.detalle_analisis, name='factibilidad-detalle'),
 ]
