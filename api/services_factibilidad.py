@@ -178,25 +178,25 @@ Datos demográficos y conectividad real (DANE 2018 + MinTIC Q4-2024):
             nombres = [i['empresa'] for i in isps_directorio[:8]]
             contexto_demografico += f"- Operadores registrados: {', '.join(nombres)}\n"
 
-        # Nivel de competencia
+        # Nivel de competencia combinando KMZ + MinTIC
         n_proveedores = proveedores_reales or municipio_data.mintic_proveedores_count or 0
-        if n_proveedores == 0:
+        n_kmz = len(cobertura['isps']) if cobertura else 0
+        n_total = max(n_proveedores, n_kmz)
+
+        if n_total == 0:
             nivel_competencia = "ZONA VIRGEN - Sin proveedores registrados"
-        elif n_proveedores <= 2:
+        elif n_total <= 2:
             nivel_competencia = "COMPETENCIA BAJA - Mercado concentrado"
-        elif n_proveedores <= 5:
+        elif n_total <= 5:
             nivel_competencia = "COMPETENCIA MEDIA"
-        elif n_proveedores <= 15:
+        elif n_total <= 15:
             nivel_competencia = "COMPETENCIA ALTA"
         else:
             nivel_competencia = "MERCADO SATURADO - Alta competencia"
 
-        contexto_demografico += f"- Nivel de competencia: {nivel_competencia}\n"
-
-    else:
-        contexto_demografico = "Datos demográficos detallados no disponibles para esta zona."
-        hogares_sin_cobertura = None
-        penetracion_ajustada = None
+        contexto_demografico += f"- Nivel de competencia: {nivel_competencia} ({n_total} operadores totales)\n"
+        contexto_demografico += f"- ISPs con infraestructura KMZ en sistema: {n_kmz}\n"
+        contexto_demografico += f"- ISPs activos según MinTIC: {n_proveedores}\n"
 
     # Tipo de zona
     if tipo_zona == 'municipio':

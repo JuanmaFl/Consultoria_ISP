@@ -154,6 +154,29 @@
         .btn-export:hover{background:var(--ink);color:var(--surface);border-color:var(--ink)}
         .btn-export .ico{font-family:var(--mono);font-size:14px}
 
+        /* Municipio cercano */
+        .municipio-cercano{background:var(--accent-bg);border:1px solid oklch(0.88 0.04 248);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+        .municipio-cercano-icon{font-family:var(--mono);font-size:16px;color:var(--accent)}
+        .municipio-cercano-info{flex:1}
+        .municipio-cercano-nombre{font-size:14px;font-weight:600;color:var(--ink)}
+        .municipio-cercano-meta{font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:2px}
+
+        /* Tabla ISPs contactables */
+        .isps-contactables-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:20px;overflow:hidden}
+        .isps-contactables-header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+        .isps-contactables-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+        .isps-count-badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;background:var(--success-bg);color:var(--success);border:1px solid oklch(0.85 0.05 155)}
+        .isps-table{width:100%;border-collapse:collapse}
+        .isps-table th{padding:10px 16px;text-align:left;font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--line);background:var(--bg)}
+        .isps-table td{padding:10px 16px;font-size:12px;color:var(--ink-2);border-bottom:1px solid var(--line)}
+        .isps-table tr:last-child td{border-bottom:none}
+        .isps-table tr:hover td{background:var(--bg)}
+        .isp-empresa{font-weight:600;color:var(--ink)}
+        .isp-contacto-link{color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:11px}
+        .isp-contacto-link:hover{text-decoration:underline}
+        .isp-sin-dato{color:var(--ink-3);font-family:var(--mono);font-size:11px}
+        .isps-empty{padding:20px;text-align:center;color:var(--ink-3);font-size:13px}
+
         /* Cache badge */
         .cache-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;background:var(--warning-bg);color:var(--warning);border:1px solid oklch(0.88 0.06 75)}
 
@@ -313,6 +336,27 @@
                 </div>
             </div>
 
+            <!-- Municipio cercano (para radio) -->
+            <div id="municipio-cercano-card" style="display:none" class="municipio-cercano">
+                <div class="municipio-cercano-icon">⌖</div>
+                <div class="municipio-cercano-info">
+                    <div class="municipio-cercano-nombre" id="municipio-cercano-nombre">—</div>
+                    <div class="municipio-cercano-meta" id="municipio-cercano-meta">—</div>
+                </div>
+            </div>
+
+            <!-- ISPs contactables -->
+            <div class="isps-contactables-card" id="isps-contactables-card" style="display:none">
+                <div class="isps-contactables-header">
+                    <div class="isps-contactables-title">
+                        <span style="font-family:var(--mono)">☎</span>
+                        ISPs contactables en la zona
+                        <span class="isps-count-badge" id="isps-count-badge">0</span>
+                    </div>
+                </div>
+                <div id="isps-contactables-body"></div>
+            </div>
+
             <!-- Export -->
             <div class="export-card">
                 <div class="export-title">Exportar reporte</div>
@@ -337,6 +381,8 @@ let analisisActual = null;
 let textoOriginal = '';
 let modoEdicion = false;
 let municipiosPorDepto = {};
+let ispsContactablesActual = [];
+let municipioCercanoActual = null;
 
 // ============================================================
 // CSRF + FETCH AUTH
@@ -490,7 +536,11 @@ async function generarAnalisis() {
 
         analisisActual = data.analisis;
         analisisActual.desde_cache = data.desde_cache;
+        ispsContactablesActual = data.isps_contactables || [];
+        municipioCercanoActual = data.municipio_cercano || null;
         renderResultado(analisisActual);
+        renderMunicipioCercano(municipioCercanoActual);
+        renderISPsContactables(ispsContactablesActual);
         cargarHistorial();
 
     } catch(e) {
@@ -508,7 +558,11 @@ async function cargarAnalisis(id) {
         const data = await res.json();
         analisisActual = data;
         analisisActual.desde_cache = true;
+        ispsContactablesActual = data.isps_contactables || [];
+        municipioCercanoActual = data.municipio_cercano || null;
         renderResultado(analisisActual);
+        renderMunicipioCercano(municipioCercanoActual);
+        renderISPsContactables(ispsContactablesActual);
     } catch(e) {
         alert('Error al cargar análisis');
     }
@@ -577,9 +631,9 @@ function renderResultado(a) {
             <div class="stat-sub">kilómetros</div>
         </div>` : ''}
         <div class="stat-card">
-            <div class="stat-label">// ISPs activos</div>
-            <div class="stat-value">${a.isps_presentes ? a.isps_presentes.length : 0}</div>
-            <div class="stat-sub">proveedores</div>
+            <div class="stat-label">// ISPs en zona</div>
+            <div class="stat-value">${(a.isps_presentes ? a.isps_presentes.length : 0) + (ispsContactablesActual ? ispsContactablesActual.length : 0)}</div>
+            <div class="stat-sub">${a.isps_presentes && a.isps_presentes.length > 0 ? a.isps_presentes.length + ' KMZ · ' : ''}${ispsContactablesActual ? ispsContactablesActual.length : 0} directorio</div>
         </div>
         ${a.penetracion_actual_pct ? `<div class="stat-card">
             <div class="stat-label">// Penetración</div>
@@ -638,6 +692,63 @@ function getTextoActual() {
 }
 
 // ============================================================
+// MUNICIPIO CERCANO + ISPs CONTACTABLES
+// ============================================================
+function renderMunicipioCercano(mun) {
+    const card = document.getElementById('municipio-cercano-card');
+    if (!mun) { card.style.display = 'none'; return; }
+    document.getElementById('municipio-cercano-nombre').textContent =
+        `${mun.nombre}, ${mun.departamento}`;
+    let meta = '';
+    if (mun.distancia_km !== undefined) meta += `A ${mun.distancia_km} km del punto · `;
+    if (mun.poblacion) meta += `${formatNum(mun.poblacion)} hab · `;
+    if (mun.penetracion) meta += `${mun.penetracion}% penetración internet`;
+    document.getElementById('municipio-cercano-meta').textContent = meta;
+    card.style.display = 'flex';
+}
+
+function renderISPsContactables(isps) {
+    const card = document.getElementById('isps-contactables-card');
+    const body = document.getElementById('isps-contactables-body');
+    const badge = document.getElementById('isps-count-badge');
+
+    if (!isps || isps.length === 0) {
+        card.style.display = 'none';
+        return;
+    }
+
+    card.style.display = 'block';
+    badge.textContent = isps.length;
+
+    let html = `<table class="isps-table">
+        <thead>
+            <tr>
+                <th>Empresa</th>
+                <th>Contacto</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    isps.forEach(isp => {
+        const tel = isp.telefono && isp.telefono !== 'None' ? isp.telefono : null;
+        const correo = isp.correo && isp.correo !== 'None' && isp.correo.includes('@') ? isp.correo : null;
+        const contacto = isp.contacto && isp.contacto !== 'None' ? isp.contacto : null;
+
+        html += `<tr>
+            <td><span class="isp-empresa">${isp.empresa || '—'}</span></td>
+            <td>${contacto ? contacto : '<span class="isp-sin-dato">—</span>'}</td>
+            <td>${tel ? `<a href="tel:${tel}" class="isp-contacto-link">${tel}</a>` : '<span class="isp-sin-dato">—</span>'}</td>
+            <td>${correo ? `<a href="mailto:${correo}" class="isp-contacto-link">${correo}</a>` : '<span class="isp-sin-dato">—</span>'}</td>
+        </tr>`;
+    });
+
+    html += '</tbody></table>';
+    body.innerHTML = html;
+}
+
+// ============================================================
 // EXPORT
 // ============================================================
 async function exportarPDF() {
@@ -654,6 +765,7 @@ async function exportarPDF() {
             body: JSON.stringify({
                 analisis_id: analisisActual.id,
                 texto_editado: textoEditado,
+                isps_contactables: ispsContactablesActual,
             })
         });
 
