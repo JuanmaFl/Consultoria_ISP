@@ -198,6 +198,9 @@ Datos demográficos y conectividad real (DANE 2018 + MinTIC Q4-2024):
         contexto_demografico += f"- ISPs con infraestructura KMZ en sistema: {n_kmz}\n"
         contexto_demografico += f"- ISPs activos según MinTIC: {n_proveedores}\n"
 
+    else:
+        contexto_demografico = "Datos demográficos detallados no disponibles para esta zona específica."
+
     # Tipo de zona
     if tipo_zona == 'municipio':
         descripcion_zona = f"municipio de {zona_nombre}"
