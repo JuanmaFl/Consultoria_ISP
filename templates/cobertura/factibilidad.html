@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factibilidad · Cobertura ISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg:oklch(0.985 0.004 260);
+            --surface:#fff;
+            --ink:oklch(0.22 0.02 260);
+            --ink-2:oklch(0.45 0.015 260);
+            --ink-3:oklch(0.62 0.012 260);
+            --line:oklch(0.92 0.008 260);
+            --line-2:oklch(0.86 0.01 260);
+            --accent:oklch(0.52 0.16 248);
+            --accent-bg:oklch(0.97 0.02 248);
+            --success:oklch(0.55 0.14 155);
+            --success-bg:oklch(0.96 0.04 155);
+            --warning:oklch(0.62 0.14 75);
+            --warning-bg:oklch(0.97 0.04 75);
+            --danger:oklch(0.55 0.18 25);
+            --danger-bg:oklch(0.97 0.025 25);
+            --mono:'JetBrains Mono',ui-monospace,monospace;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+        .topbar{background:var(--surface);border-bottom:1px solid var(--line);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+        .brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600}
+        .brand-mark{width:24px;height:24px;border-radius:5px;background:var(--ink);display:grid;place-items:center;color:var(--bg);font-family:var(--mono);font-size:11px;font-weight:700}
+        .nav-tabs{display:flex;gap:2px}
+        .nav-tab{padding:7px 12px;border-radius:5px;font-size:13px;color:var(--ink-2);text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+        .nav-tab:hover{background:var(--bg)}
+        .nav-tab.active{background:var(--ink);color:var(--surface)}
+        .nav-tab .ico{font-family:var(--mono);font-size:12px;opacity:.7}
+        .btn-logout{padding:7px 12px;border-radius:5px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);font-size:13px;cursor:pointer;font-family:inherit}
+        .btn-logout:hover{background:var(--bg);color:var(--ink)}
+
+        .page{display:flex;height:calc(100vh - 49px);overflow:hidden}
+
+        /* SIDEBAR */
+        .sidebar{width:380px;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+        .sidebar-section{padding:20px;border-bottom:1px solid var(--line)}
+        .section-tag{font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+        .section-title{font-size:15px;font-weight:600;margin-bottom:16px}
+
+        .zone-tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--line-2);border-radius:6px;padding:2px;background:var(--bg)}
+        .zone-tab{flex:1;padding:8px 6px;background:transparent;border:none;border-radius:4px;cursor:pointer;font-size:11px;font-weight:500;color:var(--ink-2);font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+        .zone-tab:hover{color:var(--ink)}
+        .zone-tab.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+        .zone-tab .ico{font-family:var(--mono);font-size:11px}
+
+        .tab-panel{display:none}
+        .tab-panel.active{display:block}
+
+        .input-group{margin-bottom:12px}
+        .input-group label{display:block;margin-bottom:6px;font-size:11px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;font-weight:500}
+        .input-group input, .input-group select{width:100%;padding:9px 12px;border:1px solid var(--line-2);border-radius:6px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--ink);transition:border-color .15s}
+        .input-group input:focus, .input-group select:focus{outline:none;border-color:var(--ink)}
+
+        .btn-primary{width:100%;padding:10px 14px;background:var(--ink);color:var(--surface);border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;transition:opacity .15s}
+        .btn-primary:hover{opacity:.88}
+        .btn-primary:disabled{opacity:.45;cursor:not-allowed}
+        .btn-secondary{width:100%;padding:9px 14px;background:var(--surface);color:var(--ink);border:1px solid var(--line-2);border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:8px;transition:all .15s}
+        .btn-secondary:hover{background:var(--bg);border-color:var(--ink)}
+
+        .spinner{display:inline-block;width:11px;height:11px;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px;margin-right:6px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* Historial */
+        .historial-item{padding:12px;border:1px solid var(--line);border-radius:6px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+        .historial-item:hover{border-color:var(--ink);background:var(--bg)}
+        .historial-zona{font-size:13px;font-weight:600;margin-bottom:4px}
+        .historial-meta{display:flex;gap:8px;align-items:center}
+        .score-badge{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600}
+        .score-alta{background:var(--success-bg);color:var(--success)}
+        .score-media{background:var(--warning-bg);color:var(--warning)}
+        .score-baja{background:var(--danger-bg);color:var(--danger)}
+        .score-saturada{background:var(--accent-bg);color:var(--accent)}
+        .historial-fecha{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+
+        /* MAIN CONTENT */
+        .main{flex:1;overflow-y:auto;padding:32px}
+
+        .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--ink-3);text-align:center}
+        .empty-icon{width:64px;height:64px;border:1px dashed var(--line-2);border-radius:12px;display:grid;place-items:center;margin-bottom:16px;font-family:var(--mono);font-size:24px}
+        .empty-title{font-size:15px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+        .empty-sub{font-size:13px;max-width:320px;line-height:1.6}
+
+        .loading-state{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--ink-3);text-align:center;gap:16px}
+        .loading-state.visible{display:flex}
+        .loading-icon{width:48px;height:48px;border:2px solid var(--line-2);border-top-color:var(--ink);border-radius:50%;animation:spin 1s linear infinite}
+        .loading-text{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:0.08em}
+        .loading-sub{font-size:13px;color:var(--ink-3);max-width:280px;line-height:1.6}
+
+        /* RESULTADO */
+        .resultado{display:none}
+        .resultado.visible{display:block}
+
+        .resultado-header{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;margin-bottom:20px}
+        .resultado-zona{font-size:22px;font-weight:700;margin-bottom:8px}
+        .resultado-meta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+        .meta-chip{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid var(--line-2);color:var(--ink-2);background:var(--bg)}
+
+        .score-section{display:flex;align-items:center;gap:20px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+        .score-circle{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:22px;font-weight:700;flex-shrink:0;border:3px solid}
+        .score-circle.alta{border-color:var(--success);color:var(--success);background:var(--success-bg)}
+        .score-circle.media{border-color:var(--warning);color:var(--warning);background:var(--warning-bg)}
+        .score-circle.baja{border-color:var(--danger);color:var(--danger);background:var(--danger-bg)}
+        .score-circle.saturada{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+        .score-info{flex:1}
+        .score-label{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);margin-bottom:4px}
+        .score-recomendacion{font-size:18px;font-weight:700}
+        .score-recomendacion.alta{color:var(--success)}
+        .score-recomendacion.media{color:var(--warning)}
+        .score-recomendacion.baja{color:var(--danger)}
+        .score-recomendacion.saturada{color:var(--accent)}
+
+        /* Stats grid */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+        .stat-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
+        .stat-label{font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+        .stat-value{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--ink)}
+        .stat-sub{font-size:11px;color:var(--ink-3);margin-top:2px}
+
+        /* Análisis texto */
+        .analisis-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:20px;overflow:hidden}
+        .analisis-header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+        .analisis-header-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+        .analisis-tag{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;background:var(--accent-bg);color:var(--accent);border:1px solid oklch(0.88 0.04 248)}
+        .analisis-body{padding:20px}
+        .analisis-texto{font-size:13px;line-height:1.8;color:var(--ink-2);white-space:pre-wrap}
+
+        /* Editor secciones */
+        .editor-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:20px}
+        .editor-header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+        .editor-title{font-size:14px;font-weight:600}
+        .btn-edit{padding:6px 12px;border:1px solid var(--line-2);border-radius:5px;background:var(--surface);color:var(--ink-2);font-size:12px;cursor:pointer;font-family:inherit}
+        .btn-edit:hover{background:var(--bg);color:var(--ink);border-color:var(--ink)}
+        .editor-body{padding:20px}
+        .editor-section{margin-bottom:16px}
+        .editor-section-label{font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+        .editor-section-content{width:100%;min-height:80px;padding:10px 12px;border:1px solid var(--line-2);border-radius:6px;font-size:13px;font-family:inherit;color:var(--ink);line-height:1.6;resize:vertical;transition:border-color .15s}
+        .editor-section-content:focus{outline:none;border-color:var(--ink)}
+        .editor-readonly{padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:13px;color:var(--ink-2);line-height:1.6;background:var(--bg);min-height:80px;white-space:pre-wrap}
+
+        /* Export */
+        .export-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:20px}
+        .export-title{font-size:14px;font-weight:600;margin-bottom:4px}
+        .export-sub{font-size:12px;color:var(--ink-3);margin-bottom:16px}
+        .export-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .btn-export{padding:10px 14px;border:1px solid var(--line-2);border-radius:6px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+        .btn-export:hover{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+        .btn-export .ico{font-family:var(--mono);font-size:14px}
+
+        /* Cache badge */
+        .cache-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;background:var(--warning-bg);color:var(--warning);border:1px solid oklch(0.88 0.06 75)}
+
+        /* ISPs presentes */
+        .isps-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+        .isp-tag{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;background:var(--accent-bg);color:var(--accent);border:1px solid oklch(0.88 0.04 248)}
+    </style>
+</head>
+<body>
+<div class="topbar">
+    <div class="brand"><div class="brand-mark">C</div>Cobertura ISP</div>
+    <div class="nav-tabs">
+        <a href="/cobertura/mapa/" class="nav-tab"><span class="ico">◉</span> Mapa</a>
+        <a href="/cobertura/dashboard/" class="nav-tab"><span class="ico">▭</span> Dashboard</a>
+        <a href="/cobertura/upload/" class="nav-tab"><span class="ico">↑</span> Upload</a>
+        <a href="/cobertura/bulk-query/" class="nav-tab"><span class="ico">≡</span> CSV</a>
+        <a href="/cobertura/factibilidad/" class="nav-tab active"><span class="ico">◈</span> Factibilidad</a>
+        <a href="/cobertura/2fa/status/" class="nav-tab"><span class="ico">⚿</span> Seguridad</a>
+    </div>
+    <button class="btn-logout" onclick="window.location.href='/cobertura/logout/'">Salir →</button>
+</div>
+
+<div class="page">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <div class="section-tag">// Análisis de factibilidad</div>
+            <div class="section-title">Seleccionar zona</div>
+
+            <div class="zone-tabs">
+                <button class="zone-tab active" onclick="switchZone('municipio')"><span class="ico">⌖</span> Municipio</button>
+                <button class="zone-tab" onclick="switchZone('departamento')"><span class="ico">▭</span> Depto.</button>
+                <button class="zone-tab" onclick="switchZone('radio')"><span class="ico">◎</span> Radio</button>
+            </div>
+
+            <!-- Municipio -->
+            <div id="panel-municipio" class="tab-panel active">
+                <div class="input-group">
+                    <label>Departamento</label>
+                    <select id="sel-departamento" onchange="cargarMunicipios()">
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Municipio</label>
+                    <select id="sel-municipio">
+                        <option value="">Selecciona departamento primero</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Departamento -->
+            <div id="panel-departamento" class="tab-panel">
+                <div class="input-group">
+                    <label>Departamento</label>
+                    <select id="sel-departamento-2">
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Radio -->
+            <div id="panel-radio" class="tab-panel">
+                <div class="input-group">
+                    <label>Latitud</label>
+                    <input type="number" id="radio-lat" step="any" placeholder="6.2442">
+                </div>
+                <div class="input-group">
+                    <label>Longitud</label>
+                    <input type="number" id="radio-lng" step="any" placeholder="-75.5812">
+                </div>
+                <div class="input-group">
+                    <label>Radio (km)</label>
+                    <input type="number" id="radio-km" value="10" min="1" max="100">
+                </div>
+            </div>
+
+            <button class="btn-primary" id="btn-analizar" onclick="generarAnalisis()">
+                Generar análisis <span style="font-family:var(--mono)">→</span>
+            </button>
+        </div>
+
+        <!-- Historial -->
+        <div class="sidebar-section" style="flex:1">
+            <div class="section-tag">// Análisis recientes</div>
+            <div id="historial-list">
+                <div style="text-align:center;padding:20px;color:var(--ink-3);font-size:12px">
+                    <span class="spinner"></span> Cargando...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+        <!-- Estado vacío -->
+        <div class="empty-state" id="empty-state">
+            <div class="empty-icon">◈</div>
+            <div class="empty-title">Análisis de factibilidad</div>
+            <div class="empty-sub">Selecciona un municipio, departamento o zona de radio para analizar la factibilidad de expansión de fibra óptica con IA.</div>
+        </div>
+
+        <!-- Estado cargando -->
+        <div class="loading-state" id="loading-state">
+            <div class="loading-icon"></div>
+            <div class="loading-text">Analizando zona...</div>
+            <div class="loading-sub">Consultando infraestructura existente y generando análisis con IA. Esto puede tomar 15-30 segundos.</div>
+        </div>
+
+        <!-- Resultado -->
+        <div class="resultado" id="resultado">
+
+            <!-- Header con score -->
+            <div class="resultado-header">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                    <div class="resultado-zona" id="res-zona-nombre">—</div>
+                    <span id="res-cache-badge" style="display:none" class="cache-badge">⚡ desde caché</span>
+                </div>
+                <div class="resultado-meta" id="res-meta"></div>
+                <div class="score-section">
+                    <div class="score-circle" id="res-score-circle">—</div>
+                    <div class="score-info">
+                        <div class="score-label">// Factibilidad</div>
+                        <div class="score-recomendacion" id="res-recomendacion">—</div>
+                        <div style="font-size:12px;color:var(--ink-3);margin-top:4px" id="res-fecha">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="res-stats"></div>
+
+            <!-- ISPs presentes -->
+            <div class="analisis-card" id="res-isps-card" style="display:none">
+                <div class="analisis-header">
+                    <div class="analisis-header-title">
+                        <span style="font-family:var(--mono)">◉</span>
+                        ISPs con infraestructura en la zona
+                    </div>
+                </div>
+                <div class="analisis-body">
+                    <div class="isps-grid" id="res-isps-list"></div>
+                </div>
+            </div>
+
+            <!-- Editor de secciones -->
+            <div class="editor-card">
+                <div class="editor-header">
+                    <div class="editor-title">Análisis generado por IA</div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn-edit" onclick="toggleEdicion()">✎ Editar</button>
+                        <button class="btn-edit" onclick="resetTexto()" style="display:none" id="btn-reset">↺ Restaurar</button>
+                    </div>
+                </div>
+                <div class="editor-body" id="editor-body">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Export -->
+            <div class="export-card">
+                <div class="export-title">Exportar reporte</div>
+                <div class="export-sub">El reporte incluirá el análisis editado y las métricas de la zona.</div>
+                <div class="export-options">
+                    <button class="btn-export" onclick="exportarPDF()">
+                        <span class="ico">⬇</span> Descargar PDF
+                    </button>
+                    <button class="btn-export" onclick="copiarAnalisis()">
+                        <span class="ico">⎘</span> Copiar texto
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+let zonaActual = 'municipio';
+let analisisActual = null;
+let textoOriginal = '';
+let modoEdicion = false;
+let municipiosPorDepto = {};
+
+// ============================================================
+// CSRF + FETCH AUTH
+// ============================================================
+function getCookie(name) {
+    let v = null;
+    if (document.cookie) {
+        document.cookie.split(';').forEach(c => {
+            c = c.trim();
+            if (c.startsWith(name + '=')) v = decodeURIComponent(c.slice(name.length + 1));
+        });
+    }
+    return v;
+}
+
+function fetchAuth(url, options = {}) {
+    const headers = {'X-CSRFToken': getCookie('csrftoken'), ...(options.headers || {})};
+    if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+    return fetch(url, {...options, credentials: 'include', headers});
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    cargarDepartamentos();
+    cargarHistorial();
+});
+
+// ============================================================
+// TABS DE ZONA
+// ============================================================
+function switchZone(zona) {
+    zonaActual = zona;
+    document.querySelectorAll('.zone-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.zone-tab')[['municipio','departamento','radio'].indexOf(zona)].classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`panel-${zona}`).classList.add('active');
+}
+
+// ============================================================
+// CARGAR DATOS
+// ============================================================
+async function cargarDepartamentos() {
+    try {
+        const res = await fetchAuth('/cobertura/api/factibilidad/municipios/');
+        const data = await res.json();
+
+        // Agrupar municipios por departamento
+        data.municipios.forEach(m => {
+            if (!municipiosPorDepto[m.departamento]) municipiosPorDepto[m.departamento] = [];
+            municipiosPorDepto[m.departamento].push(m);
+        });
+
+        const deptos = data.departamentos;
+
+        // Llenar selects de departamentos
+        ['sel-departamento', 'sel-departamento-2'].forEach(id => {
+            const sel = document.getElementById(id);
+            sel.innerHTML = '<option value="">— Seleccionar —</option>';
+            deptos.forEach(d => {
+                sel.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+        });
+
+    } catch(e) {
+        console.error('Error cargando departamentos', e);
+    }
+}
+
+function cargarMunicipios() {
+    const depto = document.getElementById('sel-departamento').value;
+    const sel = document.getElementById('sel-municipio');
+    sel.innerHTML = '<option value="">— Seleccionar —</option>';
+
+    if (depto && municipiosPorDepto[depto]) {
+        municipiosPorDepto[depto].forEach(m => {
+            sel.innerHTML += `<option value="${m.nombre}">${m.nombre}</option>`;
+        });
+    }
+}
+
+async function cargarHistorial() {
+    try {
+        const res = await fetchAuth('/cobertura/api/factibilidad/historial/');
+        const data = await res.json();
+        renderHistorial(data.analisis);
+    } catch(e) {
+        document.getElementById('historial-list').innerHTML =
+            '<div style="color:var(--ink-3);font-size:12px;padding:12px">Sin análisis previos</div>';
+    }
+}
+
+function renderHistorial(lista) {
+    const container = document.getElementById('historial-list');
+    if (!lista || lista.length === 0) {
+        container.innerHTML = '<div style="color:var(--ink-3);font-size:12px;padding:12px">Sin análisis previos</div>';
+        return;
+    }
+    container.innerHTML = lista.map(a => `
+        <div class="historial-item" onclick="cargarAnalisis(${a.id})">
+            <div class="historial-zona">${a.zona_nombre}</div>
+            <div class="historial-meta">
+                <span class="score-badge score-${a.recomendacion || 'baja'}">${a.score_factibilidad || '?'}/100</span>
+                <span class="historial-fecha">${formatFecha(a.fecha_generacion)}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============================================================
+// GENERAR ANÁLISIS
+// ============================================================
+async function generarAnalisis() {
+    let body = {};
+
+    if (zonaActual === 'municipio') {
+        const municipio = document.getElementById('sel-municipio').value;
+        const departamento = document.getElementById('sel-departamento').value;
+        if (!municipio) { alert('Selecciona un municipio'); return; }
+        body = {tipo_zona: 'municipio', municipio, departamento};
+
+    } else if (zonaActual === 'departamento') {
+        const departamento = document.getElementById('sel-departamento-2').value;
+        if (!departamento) { alert('Selecciona un departamento'); return; }
+        body = {tipo_zona: 'departamento', departamento};
+
+    } else {
+        const lat = parseFloat(document.getElementById('radio-lat').value);
+        const lng = parseFloat(document.getElementById('radio-lng').value);
+        const radio = parseInt(document.getElementById('radio-km').value);
+        if (isNaN(lat) || isNaN(lng)) { alert('Ingresa coordenadas válidas'); return; }
+        body = {tipo_zona: 'radio', latitud: lat, longitud: lng, radio_km: radio};
+    }
+
+    mostrarLoading(true);
+
+    try {
+        const res = await fetchAuth('/cobertura/api/factibilidad/analizar/', {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.error || 'Error al generar análisis');
+            mostrarLoading(false);
+            return;
+        }
+
+        analisisActual = data.analisis;
+        analisisActual.desde_cache = data.desde_cache;
+        renderResultado(analisisActual);
+        cargarHistorial();
+
+    } catch(e) {
+        alert('Error de conexión');
+        console.error(e);
+    }
+
+    mostrarLoading(false);
+}
+
+async function cargarAnalisis(id) {
+    mostrarLoading(true);
+    try {
+        const res = await fetchAuth(`/cobertura/api/factibilidad/analisis/${id}/`);
+        const data = await res.json();
+        analisisActual = data;
+        analisisActual.desde_cache = true;
+        renderResultado(analisisActual);
+    } catch(e) {
+        alert('Error al cargar análisis');
+    }
+    mostrarLoading(false);
+}
+
+// ============================================================
+// RENDER RESULTADO
+// ============================================================
+function renderResultado(a) {
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('loading-state').classList.remove('visible');
+    document.getElementById('resultado').classList.add('visible');
+    window.scrollTo(0, 0);
+
+    // Header
+    document.getElementById('res-zona-nombre').textContent = a.zona_nombre;
+
+    const cacheBadge = document.getElementById('res-cache-badge');
+    cacheBadge.style.display = a.desde_cache ? 'inline-flex' : 'none';
+
+    // Meta chips
+    const metaDiv = document.getElementById('res-meta');
+    metaDiv.innerHTML = `
+        <span class="meta-chip">${a.tipo_zona}</span>
+        ${a.km_fibra_estimados ? `<span class="meta-chip">${a.km_fibra_estimados.toFixed(1)} km fibra</span>` : ''}
+        ${a.cobertura_isp_count ? `<span class="meta-chip">${a.cobertura_isp_count} registros ISP</span>` : ''}
+        ${a.penetracion_actual_pct ? `<span class="meta-chip">${a.penetracion_actual_pct}% penetración</span>` : ''}
+    `;
+
+    // Score
+    const rec = a.recomendacion || 'baja';
+    const recLabels = {
+        alta: 'Alta factibilidad',
+        media: 'Factibilidad media',
+        baja: 'Baja factibilidad',
+        saturada: 'Zona saturada'
+    };
+    const circle = document.getElementById('res-score-circle');
+    circle.textContent = a.score_factibilidad || '?';
+    circle.className = `score-circle ${rec}`;
+
+    const recEl = document.getElementById('res-recomendacion');
+    recEl.textContent = recLabels[rec] || rec;
+    recEl.className = `score-recomendacion ${rec}`;
+
+    document.getElementById('res-fecha').textContent =
+        `Generado ${formatFecha(a.fecha_generacion)} · Válido hasta ${formatFecha(a.fecha_expiracion)}`;
+
+    // Stats
+    const statsDiv = document.getElementById('res-stats');
+    statsDiv.innerHTML = `
+        ${a.poblacion_zona ? `<div class="stat-card">
+            <div class="stat-label">// Población</div>
+            <div class="stat-value">${formatNum(a.poblacion_zona)}</div>
+            <div class="stat-sub">habitantes</div>
+        </div>` : ''}
+        ${a.hogares_zona ? `<div class="stat-card">
+            <div class="stat-label">// Hogares</div>
+            <div class="stat-value">${formatNum(a.hogares_zona)}</div>
+            <div class="stat-sub">total hogares</div>
+        </div>` : ''}
+        ${a.km_fibra_estimados !== null ? `<div class="stat-card">
+            <div class="stat-label">// Fibra tendida</div>
+            <div class="stat-value">${(a.km_fibra_estimados || 0).toFixed(1)}</div>
+            <div class="stat-sub">kilómetros</div>
+        </div>` : ''}
+        <div class="stat-card">
+            <div class="stat-label">// ISPs activos</div>
+            <div class="stat-value">${a.isps_presentes ? a.isps_presentes.length : 0}</div>
+            <div class="stat-sub">proveedores</div>
+        </div>
+        ${a.penetracion_actual_pct ? `<div class="stat-card">
+            <div class="stat-label">// Penetración</div>
+            <div class="stat-value">${a.penetracion_actual_pct}%</div>
+            <div class="stat-sub">internet estimado</div>
+        </div>` : ''}
+    `;
+
+    // ISPs presentes
+    const ispsCard = document.getElementById('res-isps-card');
+    const ispsList = document.getElementById('res-isps-list');
+    if (a.isps_presentes && a.isps_presentes.length > 0) {
+        ispsCard.style.display = 'block';
+        ispsList.innerHTML = a.isps_presentes.map(isp =>
+            `<span class="isp-tag">${isp}</span>`
+        ).join('');
+    } else {
+        ispsCard.style.display = 'none';
+    }
+
+    // Editor
+    textoOriginal = a.analisis_texto || '';
+    modoEdicion = false;
+    renderEditor(false);
+}
+
+function renderEditor(editable) {
+    const body = document.getElementById('editor-body');
+    if (editable) {
+        body.innerHTML = `
+            <textarea class="editor-section-content" id="textarea-analisis" style="width:100%;min-height:400px">${textoOriginal}</textarea>
+        `;
+    } else {
+        body.innerHTML = `
+            <div class="editor-readonly">${textoOriginal}</div>
+        `;
+    }
+}
+
+function toggleEdicion() {
+    modoEdicion = !modoEdicion;
+    renderEditor(modoEdicion);
+    document.querySelector('.btn-edit').textContent = modoEdicion ? '✓ Listo' : '✎ Editar';
+    document.getElementById('btn-reset').style.display = modoEdicion ? 'block' : 'none';
+}
+
+function resetTexto() {
+    document.getElementById('textarea-analisis').value = textoOriginal;
+}
+
+function getTextoActual() {
+    if (modoEdicion) {
+        return document.getElementById('textarea-analisis').value;
+    }
+    return textoOriginal;
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+async function exportarPDF() {
+    if (!analisisActual) return;
+
+    const textoEditado = getTextoActual();
+    const btn = document.querySelector('.btn-export');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Generando...';
+
+    try {
+        const res = await fetchAuth('/cobertura/api/factibilidad/exportar-pdf/', {
+            method: 'POST',
+            body: JSON.stringify({
+                analisis_id: analisisActual.id,
+                texto_editado: textoEditado,
+            })
+        });
+
+        if (res.ok) {
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `factibilidad_${analisisActual.zona_nombre.replace(/\s/g,'_')}.pdf`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } else {
+            alert('Error al generar PDF');
+        }
+    } catch(e) {
+        alert('Error de conexión');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<span class="ico">⬇</span> Descargar PDF';
+}
+
+function copiarAnalisis() {
+    const texto = getTextoActual();
+    navigator.clipboard.writeText(texto).then(() => {
+        const btn = document.querySelectorAll('.btn-export')[1];
+        btn.innerHTML = '<span class="ico">✓</span> Copiado';
+        setTimeout(() => { btn.innerHTML = '<span class="ico">⎘</span> Copiar texto'; }, 2000);
+    });
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function mostrarLoading(show) {
+    const emptyState = document.getElementById('empty-state');
+    const ls = document.getElementById('loading-state');
+    const resultado = document.getElementById('resultado');
+    if (show) {
+        emptyState.style.display = 'none';
+        resultado.classList.remove('visible');
+        ls.classList.add('visible');
+    } else {
+        ls.classList.remove('visible');
+        if (analisisActual) {
+            emptyState.style.display = 'none';
+            resultado.classList.add('visible');
+        } else {
+            emptyState.style.display = '';
+        }
+    }
+    document.getElementById('btn-analizar').disabled = show;
+}
+
+function formatNum(n) {
+    if (!n) return '—';
+    return n.toLocaleString('es-CO');
+}
+
+function formatFecha(f) {
+    if (!f) return '—';
+    return new Date(f).toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'});
+}
+</script>
+</body>
+</html>

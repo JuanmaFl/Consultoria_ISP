@@ -198,8 +198,136 @@ def detalle_analisis(request, analisis_id):
     })
 
 
+from django.contrib.auth.decorators import login_required
+
+@login_required(login_url='/cobertura/login/')
 def factibilidad_view(request):
     """Vista HTML del módulo de factibilidad"""
     return render(request, 'cobertura/factibilidad.html', {
         'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY,
     })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def exportar_pdf_factibilidad(request):
+    """
+    Exportar análisis de factibilidad a PDF con texto editado
+    POST /api/factibilidad/exportar-pdf/
+    Body: { "analisis_id": 1, "texto_editado": "..." }
+    """
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from io import BytesIO
+    from datetime import datetime
+    from django.http import FileResponse
+
+    analisis_id = request.data.get('analisis_id')
+    texto_editado = request.data.get('texto_editado', '')
+
+    try:
+        analisis = AnalisisFactibilidad.objects.get(id=analisis_id)
+    except AnalisisFactibilidad.DoesNotExist:
+        return Response({'error': 'Análisis no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            topMargin=0.75*inch, bottomMargin=0.75*inch,
+                            leftMargin=inch, rightMargin=inch)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Estilos
+    title_style = ParagraphStyle('T', parent=styles['Heading1'],
+        fontSize=20, textColor=colors.HexColor('#1a1a2e'), alignment=TA_CENTER, spaceAfter=6)
+    subtitle_style = ParagraphStyle('S', parent=styles['Normal'],
+        fontSize=11, textColor=colors.HexColor('#6b7280'), alignment=TA_CENTER, spaceAfter=24)
+    section_style = ParagraphStyle('Sec', parent=styles['Heading2'],
+        fontSize=13, textColor=colors.HexColor('#1a1a2e'), spaceBefore=16, spaceAfter=8)
+    body_style = ParagraphStyle('B', parent=styles['Normal'],
+        fontSize=10, leading=16, textColor=colors.HexColor('#374151'), spaceAfter=8)
+    mono_style = ParagraphStyle('M', parent=styles['Normal'],
+        fontSize=9, fontName='Courier', textColor=colors.HexColor('#6b7280'))
+
+    rec_colors = {
+        'alta': '#16a34a', 'media': '#ca8a04',
+        'baja': '#dc2626', 'saturada': '#2563eb'
+    }
+    rec_labels = {
+        'alta': 'ALTA FACTIBILIDAD', 'media': 'FACTIBILIDAD MEDIA',
+        'baja': 'BAJA FACTIBILIDAD', 'saturada': 'ZONA SATURADA'
+    }
+    rec = analisis.recomendacion or 'baja'
+    rec_color = colors.HexColor(rec_colors.get(rec, '#6b7280'))
+
+    # Título
+    elements.append(Paragraph("ANÁLISIS DE FACTIBILIDAD", title_style))
+    elements.append(Paragraph("Infraestructura de Fibra Óptica · Colombia", subtitle_style))
+
+    # Header con métricas clave
+    header_data = [
+        ['Zona analizada', analisis.zona_nombre],
+        ['Tipo de análisis', analisis.tipo_zona.capitalize()],
+        ['Factibilidad', rec_labels.get(rec, rec.upper())],
+        ['Score', f"{analisis.score_factibilidad or '—'}/100"],
+        ['ISPs en zona', str(len(analisis.isps_presentes or []))],
+        ['Km fibra estimados', f"{analisis.km_fibra_estimados or 0:.1f} km"],
+        ['Fecha generación', datetime.fromisoformat(str(analisis.fecha_generacion)).strftime('%d/%m/%Y %H:%M')],
+    ]
+
+    if analisis.poblacion_zona:
+        header_data.insert(4, ['Población', f"{analisis.poblacion_zona:,} hab."])
+    if analisis.hogares_zona:
+        header_data.insert(5, ['Hogares', f"{analisis.hogares_zona:,}"])
+
+    header_table = Table(header_data, colWidths=[2.2*inch, 4.3*inch])
+    header_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f3f4f6')),
+        ('BACKGROUND', (1, 0), (1, -1), colors.white),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#374151')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('PADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+        ('ROWBACKGROUNDS', (0, 2), (-1, 2), [colors.HexColor('#fef9c3')]),
+        ('TEXTCOLOR', (1, 2), (1, 2), rec_color),
+        ('FONTNAME', (1, 2), (1, 2), 'Helvetica-Bold'),
+    ]))
+    elements.append(header_table)
+    elements.append(Spacer(1, 0.2*inch))
+
+    # ISPs presentes
+    if analisis.isps_presentes:
+        elements.append(Paragraph("ISPs con infraestructura en la zona", section_style))
+        isps_texto = ' · '.join(analisis.isps_presentes)
+        elements.append(Paragraph(isps_texto, mono_style))
+        elements.append(Spacer(1, 0.1*inch))
+
+    # Análisis de IA
+    elements.append(Paragraph("Análisis de factibilidad", section_style))
+    texto_final = texto_editado if texto_editado else analisis.analisis_texto
+
+    # Limpiar bloques JSON del texto antes de mostrar
+    import re
+    texto_limpio = re.sub(r'```json.*?```', '', texto_final, flags=re.DOTALL).strip()
+
+    for linea in texto_limpio.split('\n'):
+        linea = linea.strip()
+        if not linea:
+            elements.append(Spacer(1, 0.05*inch))
+        elif linea.startswith('#') or (linea.isupper() and len(linea) < 60):
+            elements.append(Paragraph(linea.lstrip('#').strip(), section_style))
+        else:
+            elements.append(Paragraph(
+        f"Generado por Sistema de Cobertura ISP · {datetime.now().strftime('%d/%m/%Y %H:%M')} · Documento confidencial",
+        footer_style
+    ))
+
+    doc.build(elements)
+    buffer.seek(0)
+
+    filename = f"factibilidad_{analisis.zona_nombre.replace(' ', '_').replace(',', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+    return FileResponse(buffer, as_attachment=True, filename=filename)

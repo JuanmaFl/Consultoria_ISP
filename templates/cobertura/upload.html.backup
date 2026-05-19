@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload KMZ - Cobertura ISP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-network-wired text-2xl"></i>
+                    <span class="font-bold text-xl">Sistema de Cobertura ISP</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/cobertura/mapa/" class="hover:bg-indigo-700 px-3 py-2 rounded-md transition">
+                        <i class="fas fa-map-marked-alt mr-2"></i>Mapa
+                    </a>
+                    <a href="/cobertura/dashboard/" class="hover:bg-indigo-700 px-3 py-2 rounded-md transition">
+                        <i class="fas fa-chart-line mr-2"></i>Dashboard
+                    </a>
+                    <a href="/cobertura/upload/" class="bg-indigo-800 px-3 py-2 rounded-md">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i>Upload
+                    </a>
+                    <a href="/cobertura/admin/" class="hover:bg-indigo-700 px-3 py-2 rounded-md transition">
+                        <i class="fas fa-cog mr-2"></i>Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-cloud-upload-alt text-indigo-600 mr-3"></i>
+                Subir Archivo KMZ
+            </h1>
+            <p class="text-gray-600">Carga archivos KMZ con información de cobertura de ISPs</p>
+        </div>
+
+        <!-- Upload Card -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                    Instrucciones
+                </h2>
+                <ul class="list-disc list-inside text-gray-600 space-y-2">
+                    <li>Formatos permitidos: <strong>.kmz</strong> o <strong>.kml</strong></li>
+                    <li>Tamaño máximo: <strong>50 MB</strong></li>
+                    <li>El nombre del archivo debe contener el proveedor (ej: <code class="bg-gray-100 px-2 py-1 rounded">avidtel_zona1.kmz</code>)</li>
+                    <li>No se permiten archivos duplicados</li>
+                </ul>
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <div id="drop-zone" class="border-3 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-300">
+                <input type="file" id="file-input" accept=".kmz,.kml" class="hidden">
+                <div id="drop-zone-content">
+                    <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
+                    <p class="text-xl font-semibold text-gray-700 mb-2">Arrastra tu archivo KMZ aquí</p>
+                    <p class="text-gray-500 mb-4">o haz clic para seleccionar</p>
+                    <button type="button" onclick="document.getElementById('file-input').click()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
+                        <i class="fas fa-folder-open mr-2"></i>Seleccionar Archivo
+                    </button>
+                </div>
+            </div>
+
+            <!-- File Preview -->
+            <div id="file-preview" class="hidden mt-6">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <i class="fas fa-file-archive text-4xl text-indigo-600"></i>
+                        <div>
+                            <p id="file-name" class="font-semibold text-gray-800"></p>
+                            <p id="file-size" class="text-sm text-gray-500"></p>
+                            <p id="file-provider" class="text-sm text-indigo-600 font-medium"></p>
+                        </div>
+                    </div>
+                    <button onclick="clearFile()" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+
+                <!-- Upload Button -->
+                <button id="upload-btn" onclick="uploadFile()" class="w-full mt-4 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center">
+                    <i class="fas fa-upload mr-2"></i>
+                    Subir y Procesar Archivo
+                </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="progress-container" class="hidden mt-6">
+                <div class="mb-2 flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-700">Procesando archivo...</span>
+                    <span id="progress-text" class="text-sm font-medium text-indigo-600">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="progress-message" class="text-sm text-gray-600 mt-2">Validando archivo...</p>
+            </div>
+
+            <!-- Result Message -->
+            <div id="result-message" class="hidden mt-6"></div>
+        </div>
+
+        <!-- Archivos Procesados -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                <i class="fas fa-history text-green-500 mr-2"></i>
+                Archivos Procesados Recientemente
+            </h2>
+            <div id="archivos-list" class="space-y-3">
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                    <p>Cargando archivos...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let selectedFile = null;
+        const API_BASE = '/cobertura/api';
+        const AUTH_TOKEN = localStorage.getItem('access_token');
+
+        // Verificar autenticación
+        if (!AUTH_TOKEN) {
+            window.location.href = '/cobertura/login/';
+        }
+
+        // Configurar drag & drop
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-indigo-500', 'bg-indigo-50');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-indigo-500', 'bg-indigo-50');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-indigo-500', 'bg-indigo-50');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        // Manejar selección de archivo
+        function handleFileSelect(file) {
+            const validExtensions = ['.kmz', '.kml'];
+            const fileName = file.name.toLowerCase();
+            const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+
+            if (!hasValidExtension) {
+                showError('Formato no válido. Solo se permiten archivos .kmz o .kml');
+                return;
+            }
+
+            const maxSize = 50 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showError('Archivo muy grande. El tamaño máximo es 50 MB');
+                return;
+            }
+
+            selectedFile = file;
+            const provider = detectProvider(fileName);
+
+            document.getElementById('file-preview').classList.remove('hidden');
+            document.getElementById('file-name').textContent = file.name;
+            document.getElementById('file-size').textContent = formatFileSize(file.size);
+            document.getElementById('file-provider').textContent = `Proveedor detectado: ${provider}`;
+            document.getElementById('result-message').classList.add('hidden');
+        }
+
+        function detectProvider(filename) {
+            const name = filename.toLowerCase();
+            if (name.includes('avidtel')) return 'Avidtel';
+            if (name.includes('fibra') || name.includes('optica')) return 'Fibra Óptica Antioquia';
+            if (name.includes('starnet')) return 'Starnet';
+            if (name.includes('technet')) return 'Technet';
+            return filename.replace(/\.(kmz|kml)$/i, '').replace(/_/g, ' ');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        function clearFile() {
+            selectedFile = null;
+            fileInput.value = '';
+            document.getElementById('file-preview').classList.add('hidden');
+            document.getElementById('result-message').classList.add('hidden');
+            document.getElementById('progress-container').classList.add('hidden');
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('archivo', selectedFile);
+
+            document.getElementById('progress-container').classList.remove('hidden');
+            document.getElementById('upload-btn').disabled = true;
+            document.getElementById('upload-btn').classList.add('opacity-50', 'cursor-not-allowed');
+
+            updateProgress(10, 'Validando archivo...');
+
+            try {
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = Math.round((e.loaded / e.total) * 70) + 10;
+                        updateProgress(percentComplete, 'Subiendo archivo...');
+                    }
+                });
+
+                xhr.addEventListener('load', async () => {
+                    updateProgress(90, 'Procesando geometrías...');
+
+                    setTimeout(() => {
+                        if (xhr.status === 201) {
+                            const response = JSON.parse(xhr.responseText);
+                            updateProgress(100, '¡Completado!');
+                            showSuccess(response);
+                            clearFile();
+                            loadArchivos();
+                        } else {
+                            const error = JSON.parse(xhr.responseText);
+                            showError(error.error || 'Error al procesar el archivo', error.detalle);
+                        }
+                        
+                        document.getElementById('upload-btn').disabled = false;
+                        document.getElementById('upload-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+                        
+                        setTimeout(() => {
+                            document.getElementById('progress-container').classList.add('hidden');
+                        }, 2000);
+                    }, 500);
+                });
+
+                xhr.addEventListener('error', () => {
+                    showError('Error de conexión. Verifica tu red e intenta de nuevo.');
+                    document.getElementById('upload-btn').disabled = false;
+                    document.getElementById('upload-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+                });
+
+                xhr.open('POST', `${API_BASE}/upload-kmz/`);
+                xhr.setRequestHeader('Authorization', `Bearer ${AUTH_TOKEN}`);
+                xhr.send(formData);
+
+            } catch (error) {
+                showError('Error inesperado: ' + error.message);
+                document.getElementById('upload-btn').disabled = false;
+                document.getElementById('upload-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function updateProgress(percent, message) {
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-text').textContent = percent + '%';
+            document.getElementById('progress-message').textContent = message;
+        }
+
+        function showSuccess(response) {
+            const resultDiv = document.getElementById('result-message');
+            resultDiv.innerHTML = `
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                    <div class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 text-2xl mr-3 mt-1"></i>
+                        <div class="flex-1">
+                            <h3 class="text-green-800 font-semibold mb-2">${response.mensaje}</h3>
+                            <p class="text-green-700 text-sm mb-3"><strong>Proveedor:</strong> ${response.proveedor}</p>
+                            <div class="grid grid-cols-3 gap-4 text-sm">
+                                <div class="bg-white p-3 rounded border border-green-200">
+                                    <p class="text-gray-600">Total Elementos</p>
+                                    <p class="text-2xl font-bold text-green-600">${response.estadisticas.total_elementos}</p>
+                                </div>
+                                <div class="bg-white p-3 rounded border border-green-200">
+                                    <p class="text-gray-600">Guardados</p>
+                                    <p class="text-2xl font-bold text-green-600">${response.estadisticas.guardados}</p>
+                                </div>
+                                <div class="bg-white p-3 rounded border border-green-200">
+                                    <p class="text-gray-600">Errores</p>
+                                    <p class="text-2xl font-bold ${response.estadisticas.errores > 0 ? 'text-orange-600' : 'text-green-600'}">${response.estadisticas.errores}</p>
+                                </div>
+                            </div>
+                            ${response.detalles && response.detalles.length > 0 ? `
+                                <div class="mt-3 text-sm text-orange-700">
+                                    <strong>Advertencias:</strong>
+                                    <ul class="list-disc list-inside mt-1">
+                                        ${response.detalles.slice(0, 3).map(d => `<li>${d}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            resultDiv.classList.remove('hidden');
+        }
+
+        function showError(message, detalle = null) {
+            const resultDiv = document.getElementById('result-message');
+            resultDiv.innerHTML = `
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-circle text-red-500 text-2xl mr-3 mt-1"></i>
+                        <div>
+                            <h3 class="text-red-800 font-semibold mb-1">Error</h3>
+                            <p class="text-red-700">${message}</p>
+                            ${detalle ? `<p class="text-red-600 text-sm mt-2">${detalle}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            resultDiv.classList.remove('hidden');
+        }
+
+        async function loadArchivos() {
+            try {
+                const response = await fetch(`${API_BASE}/listar-kmz/`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+
+                if (!response.ok) throw new Error('Error al cargar archivos');
+
+                const data = await response.json();
+                displayArchivos(data.archivos);
+
+            } catch (error) {
+                document.getElementById('archivos-list').innerHTML = `
+                    <div class="text-center py-8 text-red-500">
+                        <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+                        <p>Error al cargar archivos procesados</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayArchivos(archivos) {
+            const listDiv = document.getElementById('archivos-list');
+
+            if (archivos.length === 0) {
+                listDiv.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p>No hay archivos procesados aún</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listDiv.innerHTML = archivos.slice(0, 10).map(archivo => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-file-archive text-2xl text-indigo-600"></i>
+                            <div>
+                                <p class="font-medium text-gray-800">${archivo.nombre}</p>
+                                <p class="text-sm text-gray-500">${archivo.proveedor} • ${archivo.total_elementos} elementos</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-500">${formatDate(archivo.fecha_subida)}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-CO', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        loadArchivos();
+    </script>
+</body>
+</html>
