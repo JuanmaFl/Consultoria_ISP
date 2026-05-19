@@ -229,6 +229,9 @@ class MunicipioData(models.Model):
     mintic_penetracion_pct = models.FloatField(blank=True, null=True, verbose_name='% penetración internet')
     latitud = models.FloatField(blank=True, null=True)
     longitud = models.FloatField(blank=True, null=True)
+    mintic_accesos_reales = models.IntegerField(blank=True, null=True, verbose_name='Accesos fijos reales MinTIC')
+    mintic_proveedores_reales = models.IntegerField(blank=True, null=True, verbose_name='Proveedores reales MinTIC')
+    isps_directorio = models.TextField(blank=True, null=True, verbose_name='ISPs directorio (JSON)')
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     class Meta:
