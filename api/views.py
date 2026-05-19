@@ -263,22 +263,19 @@ def dashboard_estadisticas(request):
         .order_by('-cantidad')
     )
 
-    # Por tipo de geometría
+    # Por tipo de geometría — incluye tipos simples y multi
     por_tipo = []
-    for tipo in ['MULTILINESTRING', 'MULTIPOINT', 'MULTIPOLYGON']:
+    tipo_grupos = [
+        ('Líneas (Rutas)', "GeometryType(geom) IN ('LINESTRING', 'MULTILINESTRING')"),
+        ('Puntos',         "GeometryType(geom) IN ('POINT', 'MULTIPOINT')"),
+        ('Áreas',          "GeometryType(geom) IN ('POLYGON', 'MULTIPOLYGON')"),
+    ]
+    for nombre, where_clause in tipo_grupos:
         count = CoberturaISP.objects.filter(geom__isnull=False).extra(
-            where=[f"GeometryType(geom) = '{tipo}'"]
+            where=[where_clause]
         ).count()
         if count > 0:
-            tipo_nombre = {
-                'MULTILINESTRING': 'Líneas (Rutas)',
-                'MULTIPOINT': 'Puntos',
-                'MULTIPOLYGON': 'Áreas'
-            }
-            por_tipo.append({
-                'tipo': tipo_nombre.get(tipo, tipo),
-                'cantidad': count
-            })
+            por_tipo.append({'tipo': nombre, 'cantidad': count})
 
     # Por archivo origen
     archivos = list(

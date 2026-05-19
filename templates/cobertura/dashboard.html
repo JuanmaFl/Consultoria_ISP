@@ -257,8 +257,11 @@
                 <div class="card-head">
                     <div class="card-title"><span class="tag">G1</span>Distribución por proveedor</div>
                 </div>
-                <div class="card-body">
-                    <div class="chart-container"><canvas id="providerChart"></canvas></div>
+                <div class="card-body" style="padding:0">
+                    <div style="display:flex;height:320px">
+                        <div style="flex:0 0 220px;padding:16px 0 16px 16px;overflow-y:auto;border-right:1px solid var(--line)" id="provider-legend"></div>
+                        <div style="flex:1;padding:16px;min-width:0"><canvas id="providerChart"></canvas></div>
+                    </div>
                 </div>
             </div>
             <div class="card">
@@ -460,21 +463,46 @@
             const providerCtx = document.getElementById('providerChart').getContext('2d');
             const providerLabels = dashboardData.por_proveedor.map(p => p.proveedor || 'Sin proveedor');
             const providerData = dashboardData.por_proveedor.map(p => p.cantidad);
-            new Chart(providerCtx, {
+            const COLORS = [
+                '#3b5fcf','#16a34a','#ca8a04','#dc2626','#7c3aed','#0891b2',
+                '#ea580c','#be185d','#065f46','#92400e','#1e3a8a','#166534',
+                '#7f1d1d','#4a1d96','#0c4a6e','#14532d','#78350f','#831843',
+                '#1e40af','#15803d','#b45309','#b91c1c','#6d28d9','#0e7490'
+            ];
+            const providerChart = new Chart(providerCtx, {
                 type: 'doughnut',
                 data: {
                     labels: providerLabels,
                     datasets: [{
                         data: providerData,
-                        backgroundColor: ['oklch(0.52 0.16 248)','oklch(0.55 0.14 155)','oklch(0.62 0.14 75)','oklch(0.55 0.18 25)','oklch(0.55 0.14 300)','oklch(0.55 0.14 200)'],
+                        backgroundColor: COLORS.slice(0, providerLabels.length),
                         borderWidth: 2, borderColor: '#fff'
                     }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'right', labels: { color: ink2Color, font: { size: 12, family: 'Inter' }, padding: 12, boxWidth: 12 } } }
+                    plugins: { legend: { display: false } },
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            const isp = providerLabels[idx];
+                            abrirModalISP(isp);
+                        }
+                    }
                 }
             });
+            // Leyenda custom con scroll
+            const legendEl = document.getElementById('provider-legend');
+            let legendHTML = '';
+            providerLabels.forEach((label, i) => {
+                const pct = ((providerData[i] / providerData.reduce((a,b)=>a+b,0))*100).toFixed(1);
+                legendHTML += `<div onclick="abrirModalISP('${label}')" style="display:flex;align-items:center;gap:8px;padding:6px 8px;cursor:pointer;border-radius:4px;margin-bottom:2px" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
+                    <span style="width:10px;height:10px;border-radius:2px;background:${COLORS[i % COLORS.length]};flex-shrink:0;display:block"></span>
+                    <span style="font-size:11px;color:var(--ink-2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${label}">${label}</span>
+                    <span style="font-family:var(--mono);font-size:10px;color:var(--ink-3)">${pct}%</span>
+                </div>`;
+            });
+            legendEl.innerHTML = legendHTML;
             const geometryCtx = document.getElementById('geometryChart').getContext('2d');
             const geometryLabels = dashboardData.por_tipo_geometria.map(g => g.tipo);
             const geometryData = dashboardData.por_tipo_geometria.map(g => g.cantidad);
