@@ -55,6 +55,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_otp.middleware.OTPMiddleware',
     'api.middleware.Enforce2FAMiddleware',
+    'api.middleware.AuditLogMiddleware',
 ]
 
 # ==============================================================================
@@ -170,7 +171,19 @@ SECURE_SSL_REDIRECT = False  # Lo manejamos en nginx
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# Headers de seguridad adicionales
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Content Security Policy via django-csp (manual via middleware)
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "https://maps.googleapis.com", "https://cdn.jsdelivr.net")
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
+CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
+CSP_IMG_SRC = ("'self'", "data:", "https://*.googleapis.com", "https://*.gstatic.com")
+CSP_CONNECT_SRC = ("'self'", "https://api.anthropic.com")
+CSP_FRAME_ANCESTORS = ("'self'",)
 # ==============================================================================
 # REST FRAMEWORK
 # ==============================================================================

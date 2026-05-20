@@ -42,3 +42,40 @@ class Enforce2FAMiddleware:
 
         response = self.get_response(request)
         return response
+
+
+
+class AuditLogMiddleware:
+    RUTAS_SENSIBLES = [
+        '/cobertura/api/consultar-cobertura/',
+        '/cobertura/api/factibilidad/',
+        '/cobertura/api/generar-reporte/',
+        '/cobertura/api/listar-kmz/',
+        '/cobertura/api/detalle-isp/',
+        '/cobertura/api/detalle-kmz/',
+        '/cobertura/api/bulk-query/',
+        '/cobertura/api/dashboard/',
+    ]
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        import logging, os
+        os.makedirs('/opt/cobertura_isp/logs', exist_ok=True)
+        self.logger = logging.getLogger('audit')
+        if not self.logger.handlers:
+            handler = logging.FileHandler('/opt/cobertura_isp/logs/audit.log')
+            handler.setFormatter(logging.Formatter('%(asctime)s | %(message)s'))
+            self.logger.addHandler(handler)
+            self.logger.setLevel(logging.INFO)
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        path = request.path
+        if any(path.startswith(r) for r in self.RUTAS_SENSIBLES):
+            usuario = 'anonimo'
+            if hasattr(request, 'user') and request.user.is_authenticated:
+                usuario = request.user.username
+            ip = (request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+                  or request.META.get('REMOTE_ADDR', 'unknown'))
+            self.logger.info(f"{request.method} {path} | usuario={usuario} | ip={ip} | status={response.status_code}")
+        return response
