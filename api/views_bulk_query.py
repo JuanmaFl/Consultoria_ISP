@@ -79,48 +79,19 @@ def upload_bulk_query(request):
             status='pending'
         )
         
-        # Decidir procesamiento
-        if total_registros < 500:
-            # Procesamiento SÍNCRONO
-            resultados = procesar_consultas_sincronico(registros_validos, formato)
-            
-            # Generar CSV de salida
-            csv_output = CSVProcessor.generate_output_csv(resultados)
-            
-            # Guardar resultado
-            filename = f'resultado_{job.id}_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv'
-            job.archivo_salida.save(
-                filename,
-                ContentFile(csv_output.encode('utf-8-sig'))
-            )
-            
-            job.status = 'completed'
-            job.registros_procesados = total_registros
-            job.fecha_finalizacion = timezone.now()
-            job.save()
-            
-            return Response({
-                'success': True,
-                'tipo': 'sincrono',
-                'job_id': job.id,
-                'total_registros': total_registros,
-                'archivo_salida_url': job.archivo_salida.url,
-                'mensaje': 'Procesamiento completado'
-            })
-        else:
-            # Procesamiento ASÍNCRONO
-            tiempo_estimado = total_registros * 0.5  # 0.5 seg por registro
-            
-            return Response({
-                'success': True,
-                'tipo': 'asincrono',
-                'job_id': job.id,
-                'total_registros': total_registros,
-                'tiempo_estimado_segundos': int(tiempo_estimado),
-                'tiempo_estimado_minutos': int(tiempo_estimado / 60),
-                'mensaje': f'El archivo será procesado en segundo plano. Recibirás una notificación cuando esté listo.'
-            })
-    
+        # Siempre asincrono: procesar_jobs_pendientes lo toma por cron
+        tiempo_estimado = total_registros * 0.4
+
+        return Response({
+            'success': True,
+            'tipo': 'asincrono',
+            'job_id': job.id,
+            'total_registros': total_registros,
+            'tiempo_estimado_segundos': int(tiempo_estimado),
+            'tiempo_estimado_minutos': max(1, round(tiempo_estimado / 60)),
+            'mensaje': 'El archivo esta en cola de procesamiento.'
+        }, status=202)
+
     except Exception as e:
         import traceback
         traceback.print_exc()

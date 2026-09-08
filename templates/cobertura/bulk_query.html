@@ -448,40 +448,83 @@ uploadForm.addEventListener('submit', async (e) => {
         const response = await fetch('/cobertura/api/bulk-query/upload/', {
             method: 'POST', body: formData
         });
-        const data = await response.json();
 
-        if (response.ok) {
-            if (data.tipo === 'sincrono') {
-                document.getElementById('progressBar').style.width = '100%';
-                processingArea.style.display = 'none';
-                resultArea.style.display = 'block';
-                document.getElementById('resultText').textContent =
-                    `Se procesaron ${data.total_registros} registros exitosamente.`;
-                document.getElementById('downloadLink').href = data.archivo_salida_url;
-                setTimeout(() => location.reload(), 5000);
-            } else {
-                showMessage(
-                    `Archivo en cola de procesamiento.<br>` +
-                    `<strong>Total registros:</strong> ${data.total_registros}<br>` +
-                    `<strong>Tiempo estimado:</strong> ${data.tiempo_estimado_minutos} minutos.<br>` +
-                    `Recibirás una notificación cuando esté listo.`,
-                    'info'
-                );
-                processingArea.style.display = 'none';
-                setTimeout(() => location.reload(), 3000);
+        if (!response.ok) {
+            let msg = `Error ${response.status}`;
+            try {
+                const err = await response.json();
+                if (err.error) msg = err.error;
+            } catch (_) {
+                msg = response.status === 504
+                    ? 'El servidor tardo demasiado en responder. Reintenta.'
+                    : `Error ${response.status} del servidor.`;
             }
-        } else {
-            showMessage(`Error: ${data.error}`, 'danger');
+            showMessage(msg, 'danger');
             processingArea.style.display = 'none';
             submitBtn.disabled = false;
+            return;
         }
+
+        const data = await response.json();
+        document.getElementById('processingText').textContent =
+            `En cola: ${data.total_registros} registros (~${data.tiempo_estimado_minutos} min)`;
+        document.getElementById('progressBar').style.width = '5%';
+        seguirJob(data.job_id);
+
     } catch (error) {
         console.error(error);
-        showMessage('Error de conexión', 'danger');
+        showMessage('Error de conexion', 'danger');
         processingArea.style.display = 'none';
         submitBtn.disabled = false;
     }
 });
+
+async function seguirJob(jobId) {
+    const bar = document.getElementById('progressBar');
+    const texto = document.getElementById('processingText');
+    let fallos = 0;
+
+    const timer = setInterval(async () => {
+        try {
+            const r = await fetch(`/cobertura/api/bulk-query/status/${jobId}/`);
+            if (!r.ok) throw new Error(r.status);
+            const j = await r.json();
+            fallos = 0;
+
+            if (j.status === 'completed') {
+                clearInterval(timer);
+                bar.style.width = '100%';
+                processingArea.style.display = 'none';
+                resultArea.style.display = 'block';
+                document.getElementById('resultText').textContent =
+                    `Se procesaron ${j.registros_procesados} registros.`;
+                document.getElementById('downloadLink').href = j.archivo_salida_url;
+                setTimeout(() => location.reload(), 8000);
+
+            } else if (j.status === 'failed') {
+                clearInterval(timer);
+                processingArea.style.display = 'none';
+                submitBtn.disabled = false;
+                showMessage(`El procesamiento fallo: ${j.error || 'error desconocido'}`, 'danger');
+
+            } else if (j.status === 'processing') {
+                bar.style.width = Math.max(5, j.progreso_porcentaje) + '%';
+                texto.textContent =
+                    `Procesando ${j.registros_procesados}/${j.total_registros}...`;
+
+            } else {
+                texto.textContent = 'En cola, esperando turno...';
+            }
+        } catch (e) {
+            if (++fallos >= 5) {
+                clearInterval(timer);
+                processingArea.style.display = 'none';
+                submitBtn.disabled = false;
+                showMessage('Se perdio contacto con el servidor. Revisa el historial.', 'danger');
+            }
+        }
+    }, 3000);
+}
 
 function showMessage(message, type) {
     const colors = {
